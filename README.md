@@ -67,6 +67,12 @@ C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\p
 C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py create-theme-urls --theme climate_public_agencies --output work\theme_requests\climate_urls.json
 ```
 
+Run a filled theme URL source file directly into Obsidian:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-theme-to-obsidian --theme climate_public_agencies --urls examples\environment_public_agency_urls.json --settings config\user_settings.json --work-dir work\theme_runs
+```
+
 ## Run Tests
 
 ```bat

@@ -32,3 +32,9 @@ python src\intel_mvp\cli.py create-theme-urls --theme climate_public_agencies --
 ```
 
 The generated request can be used with `run-to-obsidian` or `run-urls-to-obsidian` after URL sources are filled in.
+
+To generate the themed request and run it into Obsidian in one command:
+
+```bat
+python src\intel_mvp\cli.py run-theme-to-obsidian --theme climate_public_agencies --urls examples\environment_public_agency_urls.json --settings config\user_settings.json --work-dir work\theme_runs
+```

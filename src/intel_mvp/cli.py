@@ -6,7 +6,7 @@ from pathlib import Path
 
 try:
     from .evaluation import write_evaluation_report
-    from .obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian, run_urls_to_obsidian
+    from .obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian, run_theme_urls_to_obsidian, run_urls_to_obsidian
     from .pipeline import run_pipeline
     from .review import append_decision, append_result, append_review
     from .source_ingestion import write_source_digest_from_urls
@@ -15,7 +15,7 @@ try:
     from .web_enrichment import enrich_url_sources_file
 except ImportError:
     from evaluation import write_evaluation_report
-    from obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian, run_urls_to_obsidian
+    from obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian, run_theme_urls_to_obsidian, run_urls_to_obsidian
     from pipeline import run_pipeline
     from review import append_decision, append_result, append_review
     from source_ingestion import write_source_digest_from_urls
@@ -103,6 +103,17 @@ def build_parser() -> argparse.ArgumentParser:
     create_theme_urls_parser.add_argument("--theme", required=True, help="Theme id from the theme registry.")
     create_theme_urls_parser.add_argument("--output", required=True, help="Path to write the generated URL source JSON.")
     create_theme_urls_parser.add_argument("--registry", default="config/daily_intelligence_themes.json", help="Path to theme registry JSON.")
+
+    run_theme_parser = subparsers.add_parser("run-theme-to-obsidian", help="Generate a themed Daily Intelligence run directly into Obsidian.")
+    run_theme_parser.add_argument("--theme", required=True, help="Theme id from the theme registry.")
+    run_theme_parser.add_argument("--urls", required=True, help="Path to filled URL source JSON file.")
+    run_theme_parser.add_argument("--settings", default="config/user_settings.json", help="Path to local user settings JSON.")
+    run_theme_parser.add_argument("--registry", default="config/daily_intelligence_themes.json", help="Path to theme registry JSON.")
+    run_theme_parser.add_argument("--work-dir", default="work/theme_runs", help="Directory for generated theme request and source digests.")
+    run_theme_parser.add_argument("--title", default=None, help="Optional title override.")
+    run_theme_parser.add_argument("--related-project", default=None, help="Optional related_project override.")
+    run_theme_parser.add_argument("--enrich", action="store_true", help="Fetch URL pages before creating the source digest.")
+    run_theme_parser.add_argument("--timeout", type=int, default=15, help="Fetch timeout in seconds when --enrich is used.")
 
     return parser
 
@@ -262,6 +273,36 @@ def main() -> int:
             output_path=Path(args.output),
         )
         print(f"Wrote theme URL template: {output_path}")
+        return 0
+
+    if args.command == "run-theme-to-obsidian":
+        result = run_theme_urls_to_obsidian(
+            theme_id=args.theme,
+            url_sources_path=Path(args.urls),
+            settings_path=Path(args.settings),
+            registry_path=Path(args.registry),
+            work_dir=Path(args.work_dir),
+            title=args.title,
+            related_project=args.related_project,
+            enrich=args.enrich,
+            timeout_seconds=args.timeout,
+        )
+        url_run = result.url_run_result
+        print(f"Wrote theme request: {result.request_path}")
+        print(f"Wrote source digest: {url_run.source_digest_path}")
+        if url_run.enriched_sources_path:
+            print(f"Wrote enriched URL sources: {url_run.enriched_sources_path}")
+        print(f"Created intelligence run: {url_run.pipeline_result.run_id}")
+        print("Run files:")
+        for run_file in url_run.pipeline_result.run_files:
+            print(f"- {run_file}")
+        print("Obsidian notes:")
+        for note in url_run.pipeline_result.created_notes:
+            print(f"- {note}")
+        if url_run.pipeline_result.mobile_files:
+            print("Mobile review files:")
+            for mobile_file in url_run.pipeline_result.mobile_files:
+                print(f"- {mobile_file}")
         return 0
 
     parser.print_help()

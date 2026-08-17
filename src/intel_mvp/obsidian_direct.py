@@ -8,11 +8,13 @@ try:
     from .mobile_review import write_mobile_review_copies
     from .pipeline import PipelineResult, run_pipeline
     from .prior_knowledge import load_user_settings
+    from .themes import write_theme_request
     from .url_run import UrlRunResult, run_pipeline_from_urls
 except ImportError:
     from mobile_review import write_mobile_review_copies
     from pipeline import PipelineResult, run_pipeline
     from prior_knowledge import load_user_settings
+    from themes import write_theme_request
     from url_run import UrlRunResult, run_pipeline_from_urls
 
 
@@ -25,6 +27,12 @@ class ObsidianWriteCheck:
     output_root: Path
     ok: bool
     message: str
+
+
+@dataclass(frozen=True)
+class ThemeObsidianRunResult:
+    request_path: Path
+    url_run_result: UrlRunResult
 
 
 def resolve_obsidian_paths(settings_path: Path) -> tuple[Path, Path]:
@@ -110,3 +118,34 @@ def run_urls_to_obsidian(
     mobile_files = write_mobile_review_copies(output_root, result.pipeline_result, settings, str(title))
     pipeline_result = replace(result.pipeline_result, mobile_files=mobile_files)
     return replace(result, pipeline_result=pipeline_result)
+
+
+def run_theme_urls_to_obsidian(
+    theme_id: str,
+    url_sources_path: Path,
+    settings_path: Path,
+    registry_path: Path,
+    work_dir: Path,
+    title: str | None = None,
+    related_project: str | None = None,
+    enrich: bool = False,
+    timeout_seconds: int = 15,
+) -> ThemeObsidianRunResult:
+    theme_work_dir = work_dir / theme_id
+    request_path = theme_work_dir / f"{theme_id}.request.json"
+    write_theme_request(
+        registry_path=registry_path,
+        theme_id=theme_id,
+        output_path=request_path,
+        title=title,
+        related_project=related_project,
+    )
+    result = run_urls_to_obsidian(
+        request_path=request_path,
+        url_sources_path=url_sources_path,
+        settings_path=settings_path,
+        work_dir=theme_work_dir,
+        enrich=enrich,
+        timeout_seconds=timeout_seconds,
+    )
+    return ThemeObsidianRunResult(request_path=request_path, url_run_result=result)

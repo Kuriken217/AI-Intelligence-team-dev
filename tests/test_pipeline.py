@@ -12,7 +12,13 @@ from src.intel_mvp.evaluation import evaluate_run
 from src.intel_mvp.git_check import format_preflight, GitPreflightResult
 from src.intel_mvp.mobile_review import write_mobile_review_copies
 from src.intel_mvp.news_brief import build_news_brief, render_news_brief_markdown
-from src.intel_mvp.obsidian_direct import check_obsidian_write, resolve_obsidian_paths, run_pipeline_to_obsidian, run_urls_to_obsidian
+from src.intel_mvp.obsidian_direct import (
+    check_obsidian_write,
+    resolve_obsidian_paths,
+    run_pipeline_to_obsidian,
+    run_theme_urls_to_obsidian,
+    run_urls_to_obsidian,
+)
 from src.intel_mvp.pipeline import PipelineResult, parse_source_digest, run_pipeline, should_write_daily_intelligence, slugify
 from src.intel_mvp.prior_knowledge import build_search_terms, filter_search_terms, find_related_notes
 from src.intel_mvp.review import append_decision, append_result, append_review
@@ -777,6 +783,57 @@ class PipelineTest(unittest.TestCase):
             self.assertTrue((output_root / "runs" / result.pipeline_result.run_id).exists())
             self.assertTrue((output_root / "30_Strategic_Intelligence" / "For Mobile" / "latest.txt").exists())
             self.assertGreaterEqual(len(result.pipeline_result.mobile_files), 2)
+
+    def test_run_theme_urls_to_obsidian(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            urls_path = root / "urls.json"
+            settings_path = root / "settings.json"
+            vault_path = root / "vault"
+            work_dir = root / "work"
+            vault_path.mkdir()
+            settings_path.write_text(
+                json.dumps(
+                    {
+                        "obsidian_vault_path": str(vault_path),
+                        "obsidian_output_root": "AI_Intelligence_Unit",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            urls_path.write_text(
+                json.dumps(
+                    {
+                        "sources": [
+                            {
+                                "title": "Climate source",
+                                "url": "https://example.com/climate",
+                                "type": "public_agency_news",
+                                "date": "2026-08-18",
+                                "publisher": "Example Agency",
+                                "primary_source": True,
+                                "reliability": "high",
+                                "summary": "Climate monitoring summary.",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            result = run_theme_urls_to_obsidian(
+                theme_id="climate_public_agencies",
+                url_sources_path=urls_path,
+                settings_path=settings_path,
+                registry_path=Path("config/daily_intelligence_themes.json"),
+                work_dir=work_dir,
+            )
+            output_root = vault_path / "AI_Intelligence_Unit"
+
+            self.assertTrue(result.request_path.exists())
+            self.assertTrue(result.url_run_result.source_digest_path.exists())
+            self.assertTrue(any(note.parent.name == "10_Daily_Intelligence" for note in result.url_run_result.pipeline_result.created_notes))
+            self.assertTrue((output_root / "10_Daily_Intelligence" / "For Mobile" / "latest.txt").exists())
 
 
 if __name__ == "__main__":

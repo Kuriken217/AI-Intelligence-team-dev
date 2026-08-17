@@ -59,6 +59,14 @@ C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\p
 Daily Intelligence news briefs use the standard sections documented in `docs\daily_intelligence_brief.md`.
 Add a `news_brief` object to a request JSON to tune headline, implications, watch items, and Red Team checks for a specific topic.
 
+List and create reusable Daily Intelligence theme templates:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py list-themes
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py create-theme-request --theme climate_public_agencies --output work\theme_requests\climate_request.json
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py create-theme-urls --theme climate_public_agencies --output work\theme_requests\climate_urls.json
+```
+
 ## Run Tests
 
 ```bat

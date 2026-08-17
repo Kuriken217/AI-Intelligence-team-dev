@@ -19,6 +19,7 @@ from src.intel_mvp.review import append_decision, append_result, append_review
 from src.intel_mvp.stages import build_source_digest
 from src.intel_mvp.source_ingestion import is_http_url, write_source_digest_from_urls
 from src.intel_mvp.source_quality import is_primary_source, source_quality_gaps
+from src.intel_mvp.themes import build_request_from_theme, build_url_source_template, list_theme_rows, load_theme_registry, write_theme_request
 from src.intel_mvp.url_run import run_pipeline_from_urls
 from src.intel_mvp.vault import missing_frontmatter_fields
 from src.intel_mvp.web_enrichment import enrich_url_sources_file, extract_page_metadata
@@ -212,6 +213,35 @@ class PipelineTest(unittest.TestCase):
         self.assertIn("Custom watch item", markdown)
         self.assertIn("Custom challenge", markdown)
         self.assertIn("https://example.gov/update", markdown)
+
+    def test_daily_intelligence_theme_registry_builds_request(self) -> None:
+        registry = load_theme_registry(Path("config/daily_intelligence_themes.json"))
+        rows = list_theme_rows(registry)
+        request = build_request_from_theme(registry, "climate_public_agencies")
+        url_template = build_url_source_template(registry, "climate_public_agencies")
+
+        self.assertIn(("climate_public_agencies", "Climate / Public Agencies", "high"), rows)
+        self.assertEqual(request["requested_output"], "Daily Intelligence / News Brief")
+        self.assertIn("news_brief", request)
+        self.assertEqual(url_template["theme_id"], "climate_public_agencies")
+        self.assertEqual(len(url_template["sources"]), 1)
+
+    def test_write_theme_request(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "request.json"
+
+            write_theme_request(
+                registry_path=Path("config/daily_intelligence_themes.json"),
+                theme_id="ai_infrastructure",
+                output_path=output_path,
+                title="Custom AI Infra News",
+                related_project="AI Watch",
+            )
+
+            payload = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertEqual(payload["title"], "Custom AI Infra News")
+            self.assertEqual(payload["related_project"], "AI Watch")
+            self.assertIn("ai", payload["tags"])
 
     def test_validate_required_fields_reports_missing_values(self) -> None:
         result = validate_required_fields({"title": "Only title"}, {"required": ["title", "objective"]})

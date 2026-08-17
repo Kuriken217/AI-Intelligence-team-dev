@@ -1,0 +1,103 @@
+{
+  "themes": {
+    "climate_public_agencies": {
+      "display_name": "Climate / Public Agencies",
+      "title": "公的機関発表で見る地球環境変動ニュース",
+      "objective": "NOAA、WMO、Copernicus、NASAなどの公的・準公的機関の最新情報をもとに、地球環境変動の重要シグナルを短いニュースブリーフとして整理する。",
+      "decision_context": "Obsidian上で、公式ソースに基づく環境変動ニュースとしてユーザーが確認・追跡できるか判断する。",
+      "scope": ["global temperature", "sea surface temperature", "ENSO outlook", "sea ice", "public agency monitoring"],
+      "related_project": "Daily Intelligence",
+      "priority": "high",
+      "tags": ["environment", "climate", "public-agency", "daily-intelligence"],
+      "news_brief": {
+        "headline": "公式機関の発表から、環境変動の監視で重点確認すべきシグナルを整理する",
+        "why_it_matters": [
+          "公式ソースを横断することで、単発ニュースではなく継続監視すべき変化として扱える。",
+          "気温、海面水温、ENSO、海氷は、災害リスク、食料・水、エネルギー需要、政策判断に波及しやすい。"
+        ],
+        "potential_implications": [
+          "環境変動テーマをDaily Intelligenceの継続監視対象にする価値がある。",
+          "地域別の影響情報を追加すると、意思決定への接続度が上がる。"
+        ],
+        "watch_next": ["NOAA/NCEI monthly climate report", "NASA GISTEMP update", "Copernicus climate bulletin", "WMO ENSO outlook"],
+        "red_team_checks": ["予測を観測済み事実として扱っていないか確認する。", "各ソースが最新リリースか確認する。"]
+      },
+      "source_guidance": ["Prefer official agency releases and datasets.", "Separate observed indicators from forecasts."]
+    },
+    "ai_infrastructure": {
+      "display_name": "AI Infrastructure",
+      "title": "AIインフラ市場ニュース",
+      "objective": "AIデータセンター、半導体、電力、冷却、ネットワーク、クラウド投資に関する重要ニュースを整理する。",
+      "decision_context": "AIインフラ関連の投資・事業・技術トレンドとして継続監視すべきか判断する。",
+      "scope": ["data centers", "semiconductors", "power demand", "cooling", "cloud capex"],
+      "related_project": "Daily Intelligence",
+      "priority": "high",
+      "tags": ["ai", "infrastructure", "semiconductor", "daily-intelligence"],
+      "news_brief": {
+        "headline": "AIインフラの需給・投資・制約条件に関する重要シグナルを整理する",
+        "why_it_matters": [
+          "AI需要は半導体、電力、データセンター、冷却、クラウド投資に連鎖して影響する。",
+          "供給制約や設備投資の変化は企業評価や事業機会に直結しやすい。"
+        ],
+        "potential_implications": ["投資テーマ、事業機会、リスク要因の優先順位を更新する材料になる。"],
+        "watch_next": ["hyperscaler capex", "GPU supply", "data center power constraints", "liquid cooling adoption"],
+        "red_team_checks": ["企業発表と実需を混同していないか確認する。", "一次情報や顧客導入証拠があるか確認する。"]
+      },
+      "source_guidance": ["Prefer company filings, earnings calls, official product releases, and reputable technical analysis."]
+    },
+    "financial_markets": {
+      "display_name": "Financial Markets",
+      "title": "金融市場ニュース",
+      "objective": "金利、為替、株式、クレジット、コモディティ、中央銀行発表を中心に、市場判断に関わるニュースを整理する。",
+      "decision_context": "市場環境の変化を把握し、投資・資産配分・リスク管理で確認すべき論点を判断する。",
+      "scope": ["rates", "fx", "equities", "credit", "commodities", "central banks"],
+      "related_project": "Daily Intelligence",
+      "priority": "high",
+      "tags": ["finance", "markets", "macro", "daily-intelligence"],
+      "news_brief": {
+        "headline": "金融市場の方向感とリスク要因を、公式・市場データに基づき整理する",
+        "why_it_matters": ["金利・為替・株式の変化は幅広い意思決定に波及する。", "中央銀行や経済指標の解釈は短期市場変動の起点になりやすい。"],
+        "potential_implications": ["リスク許容度、ウォッチリスト、ヘッジ判断を見直す材料になる。"],
+        "watch_next": ["central bank communication", "inflation data", "employment data", "yield curve", "USD trend"],
+        "red_team_checks": ["短期値動きと構造変化を混同していないか確認する。", "単一市場の動きを全体トレンドと誤認していないか確認する。"]
+      },
+      "source_guidance": ["Prefer central bank releases, official statistics, market data, and reputable financial reporting."]
+    },
+    "geopolitics": {
+      "display_name": "Geopolitics",
+      "title": "地政学リスクニュース",
+      "objective": "安全保障、外交、制裁、選挙、資源・サプライチェーンに関する地政学ニュースを整理する。",
+      "decision_context": "事業・投資・生活上のリスクや機会に影響しうる地政学テーマとして監視すべきか判断する。",
+      "scope": ["security", "diplomacy", "sanctions", "elections", "supply chain", "energy security"],
+      "related_project": "Daily Intelligence",
+      "priority": "medium",
+      "tags": ["geopolitics", "risk", "policy", "daily-intelligence"],
+      "news_brief": {
+        "headline": "地政学リスクの変化を、事実・解釈・シナリオに分けて整理する",
+        "why_it_matters": ["地政学イベントは市場、供給網、政策、企業活動に急速に波及する。"],
+        "potential_implications": ["影響地域、関連産業、制裁・規制リスクの監視優先度を更新する材料になる。"],
+        "watch_next": ["official government statements", "sanctions updates", "election calendar", "energy supply indicators"],
+        "red_team_checks": ["未確認情報やプロパガンダを事実として扱っていないか確認する。", "単一陣営の見方に偏っていないか確認する。"]
+      },
+      "source_guidance": ["Prefer official statements, multilateral institutions, and multiple reputable news sources."]
+    },
+    "company_watch": {
+      "display_name": "Company Watch",
+      "title": "企業ウォッチニュース",
+      "objective": "特定企業の決算、製品、規制、提携、競争環境に関するニュースを整理する。",
+      "decision_context": "対象企業を継続監視・深掘り・投資候補・事業調査対象にするか判断する。",
+      "scope": ["earnings", "product", "regulation", "partnership", "competition", "management"],
+      "related_project": "Daily Intelligence",
+      "priority": "medium",
+      "tags": ["company", "watchlist", "daily-intelligence"],
+      "news_brief": {
+        "headline": "対象企業の事業・競争・財務に影響するニュースを整理する",
+        "why_it_matters": ["企業ニュースは売上成長、競争優位、規制リスク、資本配分の見方を変えうる。"],
+        "potential_implications": ["ウォッチリスト継続、深掘り調査、比較対象追加の判断材料になる。"],
+        "watch_next": ["earnings call", "official filings", "product announcements", "regulatory updates", "competitor moves"],
+        "red_team_checks": ["会社発表をそのまま結論にしていないか確認する。", "競合・顧客・規制側の反証材料を確認する。"]
+      },
+      "source_guidance": ["Prefer company filings, investor relations, regulator publications, and customer or competitor evidence."]
+    }
+  }
+}

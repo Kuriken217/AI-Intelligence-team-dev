@@ -10,6 +10,7 @@ try:
     from .pipeline import run_pipeline
     from .review import append_decision, append_result, append_review
     from .source_ingestion import write_source_digest_from_urls
+    from .themes import load_theme_registry, list_theme_rows, write_theme_request, write_theme_url_template
     from .url_run import run_pipeline_from_urls
     from .web_enrichment import enrich_url_sources_file
 except ImportError:
@@ -18,6 +19,7 @@ except ImportError:
     from pipeline import run_pipeline
     from review import append_decision, append_result, append_review
     from source_ingestion import write_source_digest_from_urls
+    from themes import load_theme_registry, list_theme_rows, write_theme_request, write_theme_url_template
     from url_run import run_pipeline_from_urls
     from web_enrichment import enrich_url_sources_file
 
@@ -86,6 +88,21 @@ def build_parser() -> argparse.ArgumentParser:
     run_urls_parser.add_argument("--work-dir", default="work/url_runs", help="Directory for generated source digests.")
     run_urls_parser.add_argument("--enrich", action="store_true", help="Fetch URL pages before creating the source digest.")
     run_urls_parser.add_argument("--timeout", type=int, default=15, help="Fetch timeout in seconds when --enrich is used.")
+
+    list_themes_parser = subparsers.add_parser("list-themes", help="List configured Daily Intelligence themes.")
+    list_themes_parser.add_argument("--registry", default="config/daily_intelligence_themes.json", help="Path to theme registry JSON.")
+
+    create_theme_request_parser = subparsers.add_parser("create-theme-request", help="Create an information request JSON from a theme.")
+    create_theme_request_parser.add_argument("--theme", required=True, help="Theme id from the theme registry.")
+    create_theme_request_parser.add_argument("--output", required=True, help="Path to write the generated request JSON.")
+    create_theme_request_parser.add_argument("--registry", default="config/daily_intelligence_themes.json", help="Path to theme registry JSON.")
+    create_theme_request_parser.add_argument("--title", default=None, help="Optional title override.")
+    create_theme_request_parser.add_argument("--related-project", default=None, help="Optional related_project override.")
+
+    create_theme_urls_parser = subparsers.add_parser("create-theme-urls", help="Create a URL source template JSON from a theme.")
+    create_theme_urls_parser.add_argument("--theme", required=True, help="Theme id from the theme registry.")
+    create_theme_urls_parser.add_argument("--output", required=True, help="Path to write the generated URL source JSON.")
+    create_theme_urls_parser.add_argument("--registry", default="config/daily_intelligence_themes.json", help="Path to theme registry JSON.")
 
     return parser
 
@@ -217,6 +234,34 @@ def main() -> int:
         print("Obsidian notes:")
         for note in result.pipeline_result.created_notes:
             print(f"- {note}")
+        return 0
+
+    if args.command == "list-themes":
+        registry = load_theme_registry(Path(args.registry))
+        print("Daily Intelligence themes:")
+        for theme_id, display_name, priority in list_theme_rows(registry):
+            suffix = f" ({priority})" if priority else ""
+            print(f"- {theme_id}: {display_name}{suffix}")
+        return 0
+
+    if args.command == "create-theme-request":
+        output_path = write_theme_request(
+            registry_path=Path(args.registry),
+            theme_id=args.theme,
+            output_path=Path(args.output),
+            title=args.title,
+            related_project=args.related_project,
+        )
+        print(f"Wrote theme request: {output_path}")
+        return 0
+
+    if args.command == "create-theme-urls":
+        output_path = write_theme_url_template(
+            registry_path=Path(args.registry),
+            theme_id=args.theme,
+            output_path=Path(args.output),
+        )
+        print(f"Wrote theme URL template: {output_path}")
         return 0
 
     parser.print_help()

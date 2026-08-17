@@ -16,6 +16,7 @@ from src.intel_mvp.review import append_decision, append_result, append_review
 from src.intel_mvp.source_ingestion import is_http_url, write_source_digest_from_urls
 from src.intel_mvp.source_quality import is_primary_source, source_quality_gaps
 from src.intel_mvp.vault import missing_frontmatter_fields
+from src.intel_mvp.web_enrichment import enrich_url_sources_file, extract_page_metadata
 
 
 class PipelineTest(unittest.TestCase):
@@ -339,6 +340,57 @@ class PipelineTest(unittest.TestCase):
             self.assertIn("- primary_source: false", text)
             self.assertTrue(is_http_url("https://example.com/source"))
             self.assertFalse(is_http_url("not-a-url"))
+
+    def test_extract_page_metadata(self) -> None:
+        metadata = extract_page_metadata(
+            """<!doctype html>
+<html>
+<head>
+  <title>Fallback Title</title>
+  <meta property="og:title" content="Open Graph Title">
+  <meta name="description" content="Example description.">
+</head>
+<body>
+  <script>ignored()</script>
+  <h1>Heading</h1>
+  <p>Main body text for extraction.</p>
+</body>
+</html>"""
+        )
+
+        self.assertEqual(metadata.title, "Open Graph Title")
+        self.assertEqual(metadata.description, "Example description.")
+        self.assertIn("Main body text", metadata.text_excerpt)
+
+    def test_enrich_url_sources_records_fetch_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_path = root / "urls.json"
+            output_path = root / "enriched.json"
+            input_path.write_text(
+                json.dumps(
+                    {
+                        "sources": [
+                            {
+                                "title": "Invalid local URL",
+                                "url": "https://127.0.0.1:1/unreachable",
+                                "type": "web_page",
+                                "date": "2026-08-17",
+                                "publisher": "Local",
+                                "primary_source": False,
+                                "reliability": "unknown",
+                                "summary": "Expected to fail.",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            enrich_url_sources_file(input_path, output_path, timeout_seconds=1)
+
+            payload = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertIn("fetch_error", payload["sources"][0])
 
 
 if __name__ == "__main__":

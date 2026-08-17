@@ -97,8 +97,9 @@ Requires user approval or input when: creating or connecting a GitHub repository
 
 - [x] Define URL input format
 - [x] Convert URL source JSON into source digest Markdown
-- [ ] Fetch page metadata and text when permitted
-- [ ] Extract source title, publisher, date, summary, and reliability
+- [x] Fetch page metadata and text when permitted
+- [x] Extract source title, summary, and text excerpt
+- [ ] Extract publisher, date, and reliability
 - [ ] Preserve citation links
 - [ ] Add tests with fixture HTML or Markdown
 

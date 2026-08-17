@@ -52,3 +52,19 @@ python -m src.intel_mvp.cli ingest-urls --input examples\url_sources.json --outp
 ```
 
 The command does not fetch web pages yet. It validates URL-shaped inputs and preserves source metadata for later collection and review.
+
+## URL Enrichment
+
+When network access is available, the MVP can fetch HTML pages and add retrieved metadata to the URL source JSON.
+
+```bat
+python -m src.intel_mvp.cli enrich-urls --input examples\url_sources.json --output work\enriched_url_sources.json
+```
+
+The command extracts:
+
+- fetched title
+- meta description
+- text excerpt
+
+This is intentionally separate from `ingest-urls` so manually curated source metadata remains possible.

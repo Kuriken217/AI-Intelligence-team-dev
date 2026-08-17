@@ -8,11 +8,13 @@ try:
     from .pipeline import run_pipeline
     from .review import append_decision, append_result, append_review
     from .source_ingestion import write_source_digest_from_urls
+    from .web_enrichment import enrich_url_sources_file
 except ImportError:
     from evaluation import write_evaluation_report
     from pipeline import run_pipeline
     from review import append_decision, append_result, append_review
     from source_ingestion import write_source_digest_from_urls
+    from web_enrichment import enrich_url_sources_file
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -47,6 +49,11 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_parser = subparsers.add_parser("ingest-urls", help="Convert URL source JSON into a source digest Markdown file.")
     ingest_parser.add_argument("--input", required=True, help="Path to URL source JSON file.")
     ingest_parser.add_argument("--output", required=True, help="Path to write source digest Markdown.")
+
+    enrich_parser = subparsers.add_parser("enrich-urls", help="Fetch URL pages and add metadata to URL source JSON.")
+    enrich_parser.add_argument("--input", required=True, help="Path to URL source JSON file.")
+    enrich_parser.add_argument("--output", required=True, help="Path to write enriched URL source JSON.")
+    enrich_parser.add_argument("--timeout", type=int, default=15, help="Fetch timeout in seconds.")
 
     return parser
 
@@ -93,6 +100,11 @@ def main() -> int:
     if args.command == "ingest-urls":
         output_path = write_source_digest_from_urls(Path(args.input), Path(args.output))
         print(f"Wrote source digest: {output_path}")
+        return 0
+
+    if args.command == "enrich-urls":
+        output_path = enrich_url_sources_file(Path(args.input), Path(args.output), timeout_seconds=args.timeout)
+        print(f"Wrote enriched URL sources: {output_path}")
         return 0
 
     parser.print_help()

@@ -6,7 +6,7 @@ from pathlib import Path
 
 try:
     from .evaluation import write_evaluation_report
-    from .obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian
+    from .obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian, run_urls_to_obsidian
     from .pipeline import run_pipeline
     from .review import append_decision, append_result, append_review
     from .source_ingestion import write_source_digest_from_urls
@@ -14,7 +14,7 @@ try:
     from .web_enrichment import enrich_url_sources_file
 except ImportError:
     from evaluation import write_evaluation_report
-    from obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian
+    from obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian, run_urls_to_obsidian
     from pipeline import run_pipeline
     from review import append_decision, append_result, append_review
     from source_ingestion import write_source_digest_from_urls
@@ -38,6 +38,17 @@ def build_parser() -> argparse.ArgumentParser:
     run_obsidian_parser.add_argument("--request", required=True, help="Path to the information request JSON file.")
     run_obsidian_parser.add_argument("--sources", required=True, help="Path to the source digest Markdown file.")
     run_obsidian_parser.add_argument("--settings", default="config/user_settings.json", help="Path to local user settings JSON.")
+
+    run_urls_obsidian_parser = subparsers.add_parser(
+        "run-urls-to-obsidian",
+        help="Fetch URL sources and generate notes directly into the configured Obsidian vault.",
+    )
+    run_urls_obsidian_parser.add_argument("--request", required=True, help="Path to the information request JSON file.")
+    run_urls_obsidian_parser.add_argument("--urls", required=True, help="Path to URL source JSON file.")
+    run_urls_obsidian_parser.add_argument("--settings", default="config/user_settings.json", help="Path to local user settings JSON.")
+    run_urls_obsidian_parser.add_argument("--work-dir", default="work/url_runs", help="Directory for generated source digests.")
+    run_urls_obsidian_parser.add_argument("--enrich", action="store_true", help="Fetch URL pages before creating the source digest.")
+    run_urls_obsidian_parser.add_argument("--timeout", type=int, default=15, help="Fetch timeout in seconds when --enrich is used.")
 
     review_parser = subparsers.add_parser("review", help="Append a user review to an Obsidian note.")
     review_parser.add_argument("--note", required=True, help="Path to the note to update.")
@@ -121,6 +132,27 @@ def main() -> int:
             print(f"- {run_file}")
         print("Obsidian notes:")
         for note in result.created_notes:
+            print(f"- {note}")
+        return 0
+
+    if args.command == "run-urls-to-obsidian":
+        result = run_urls_to_obsidian(
+            request_path=Path(args.request),
+            url_sources_path=Path(args.urls),
+            settings_path=Path(args.settings),
+            work_dir=Path(args.work_dir),
+            enrich=args.enrich,
+            timeout_seconds=args.timeout,
+        )
+        print(f"Wrote source digest: {result.source_digest_path}")
+        if result.enriched_sources_path:
+            print(f"Wrote enriched URL sources: {result.enriched_sources_path}")
+        print(f"Created intelligence run: {result.pipeline_result.run_id}")
+        print("Run files:")
+        for run_file in result.pipeline_result.run_files:
+            print(f"- {run_file}")
+        print("Obsidian notes:")
+        for note in result.pipeline_result.created_notes:
             print(f"- {note}")
         return 0
 

@@ -46,6 +46,12 @@ Use this command to generate the MVP note set directly into the configured Obsid
 C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-to-obsidian --request examples\information_request.json --sources examples\sources.md --settings config\user_settings.json
 ```
 
+Use this command when the source material starts as URLs:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-urls-to-obsidian --request examples\environment_public_agency_request.json --urls examples\environment_public_agency_urls.json --settings config\user_settings.json --work-dir work\environment_public_agency --enrich
+```
+
 ## MVP Behavior
 
 When the configured vault is readable, the pipeline will:

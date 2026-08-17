@@ -27,6 +27,7 @@ def run_pipeline_from_urls(
     work_dir: Path,
     enrich: bool = False,
     timeout_seconds: int = 15,
+    run_root_path: Path | None = None,
 ) -> UrlRunResult:
     work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -44,6 +45,7 @@ def run_pipeline_from_urls(
         request_path=request_path,
         sources_path=source_digest_path,
         vault_path=vault_path,
+        run_root_path=run_root_path,
     )
 
     return UrlRunResult(
@@ -51,4 +53,3 @@ def run_pipeline_from_urls(
         source_digest_path=source_digest_path,
         enriched_sources_path=enriched_sources_path,
     )
-

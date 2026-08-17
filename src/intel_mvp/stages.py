@@ -39,9 +39,9 @@ def build_mission_brief(
 
 
 def build_source_digest(sources: list[dict[str, str]]) -> dict[str, Any]:
-    source_gaps = source_quality_gaps(sources) + [
-        "Customer adoption evidence is not yet verified.",
-    ]
+    source_gaps = source_quality_gaps(sources)
+    if not source_gaps:
+        source_gaps = ["No immediate source quality gaps detected in the current source set."]
 
     return {
         "sources": sources,
@@ -55,35 +55,35 @@ def build_analysis_packet(source_digest: dict[str, Any]) -> dict[str, Any]:
     return {
         "facts": fact_candidates,
         "interpretations": [
-            "Rising AI rack density may increase pressure on data center cooling architecture.",
-            "Supplier expansion may indicate expected demand, but announcements alone are not proof of durable adoption.",
+            "The source set should be treated as current situational intelligence until the next official update is available.",
+            "Observed indicators and forecast indicators should be kept separate because they carry different uncertainty profiles.",
         ],
         "insights": [
-            "Cooling constraints can become a bottleneck for AI infrastructure scaling.",
-            "The most useful research angle is supplier exposure plus customer validation.",
+            "The most useful signal is the direction shared across independent public agencies, not any single headline.",
+            "Decision value improves when source dates, baselines, and geographic scope are preserved with each claim.",
         ],
         "hypotheses": [
-            "AI data center power density may create sustained demand for liquid cooling infrastructure and related suppliers."
+            "If multiple official indicators continue to move in the same direction, the topic should remain an active intelligence watch item."
         ],
         "uncertainties": [
-            "Adoption rates are not yet validated.",
-            "Retrofit economics and maintenance risks remain unclear.",
-            "Competitive differentiation among suppliers is not yet established.",
+            "The source set may mix monthly observations, model-based forecasts, and broader background datasets.",
+            "Regional impacts may diverge from the global signal.",
+            "Newer official releases may change rankings, anomalies, or near-term outlooks.",
         ],
     }
 
 
 def build_integrated_intelligence(analysis_packet: dict[str, Any]) -> dict[str, Any]:
     return {
-        "summary": "The theme is strategically relevant but still needs primary-source validation before strong action.",
+        "summary": "The theme is relevant for monitoring, but conclusions should remain tied to official source dates and uncertainty.",
         "key_findings": analysis_packet["insights"],
         "implications": [
-            "The topic should remain active if the user tracks AI infrastructure opportunities.",
-            "The next research step should focus on direct beneficiaries and deployment evidence.",
+            "The topic can support a short intelligence brief or news update now.",
+            "The next research step should compare follow-up official releases and track whether the signal persists.",
         ],
         "confidence": {
             "level": "medium",
-            "rationale": "The direction is plausible, but current evidence is not yet deep enough for a high-confidence conclusion.",
+            "rationale": "The sources are traceable and official, but the brief still depends on a limited source set and current publication timing.",
         },
         "open_questions": analysis_packet["uncertainties"],
     }
@@ -92,38 +92,38 @@ def build_integrated_intelligence(analysis_packet: dict[str, Any]) -> dict[str, 
 def build_red_team_review(integrated_intelligence: dict[str, Any]) -> dict[str, Any]:
     return {
         "counterpoints": [
-            "Supplier announcements may overstate actual customer adoption.",
-            "Thermal constraints may be solved by broader facility redesign rather than narrow liquid-cooling suppliers.",
+            "Monthly records can be attention-grabbing but may not describe every region or impact category.",
+            "Forecast products should not be presented as observed outcomes.",
         ],
         "bias_risks": [
-            "AI infrastructure enthusiasm may inflate perceived certainty.",
-            "Source selection may overweight recent market narratives.",
+            "Recent extreme indicators may make the overall trend feel more certain than the evidence permits.",
+            "Source selection may overweight English-language global agencies and underweight regional agencies.",
         ],
         "missing_information": integrated_intelligence["open_questions"],
         "confidence_adjustments": [
-            "Keep overall confidence at medium until primary sources and deployment data are added."
+            "Keep confidence at medium until additional official updates or regional corroboration are added."
         ],
         "must_verify": [
-            "Customer adoption evidence",
-            "Revenue contribution",
-            "Reliability and maintenance record",
-            "Supplier differentiation",
+            "Publication date and latest-release status",
+            "Baseline period used for anomalies",
+            "Observed indicator versus forecast indicator",
+            "Regional exceptions and impact evidence",
         ],
     }
 
 
 def build_strategy_packet(red_team_review: dict[str, Any]) -> dict[str, Any]:
     return {
-        "recommendation": "Keep this as a high-priority watch theme, but do not convert it into a firm thesis until verification items are addressed.",
+        "recommendation": "Publish as a monitored intelligence brief, while clearly separating verified observations from outlook-based risk signals.",
         "options": [
             "Approve as active intelligence theme",
-            "Keep in watchlist pending primary-source validation",
-            "Defer until deployment evidence improves",
+            "Keep in watchlist pending the next official update",
+            "Defer if the source set is too narrow for the intended audience",
         ],
         "next_actions": [
-            "Add primary sources.",
-            "Build a supplier exposure map.",
-            "Track customer deployments and reliability signals.",
+            "Add the next NOAA/NASA/Copernicus/WMO update when released.",
+            "Separate global indicators from regional impact notes.",
+            "Create a recurring watch item for anomalies, sea surface temperatures, ENSO, and sea ice.",
         ],
         "watch_items": red_team_review["must_verify"],
         "decision_prompt": "Should this topic become an active intelligence theme for the related project?",

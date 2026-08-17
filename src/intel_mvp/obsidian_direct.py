@@ -6,9 +6,11 @@ from pathlib import Path
 try:
     from .pipeline import PipelineResult, run_pipeline
     from .prior_knowledge import load_user_settings
+    from .url_run import UrlRunResult, run_pipeline_from_urls
 except ImportError:
     from pipeline import PipelineResult, run_pipeline
     from prior_knowledge import load_user_settings
+    from url_run import UrlRunResult, run_pipeline_from_urls
 
 
 DEFAULT_OBSIDIAN_OUTPUT_ROOT = "AI_Intelligence_Unit"
@@ -74,5 +76,25 @@ def run_pipeline_to_obsidian(request_path: Path, sources_path: Path, settings_pa
         request_path=request_path,
         sources_path=sources_path,
         vault_path=output_root,
+        run_root_path=output_root / "runs",
+    )
+
+
+def run_urls_to_obsidian(
+    request_path: Path,
+    url_sources_path: Path,
+    settings_path: Path,
+    work_dir: Path,
+    enrich: bool = False,
+    timeout_seconds: int = 15,
+) -> UrlRunResult:
+    _vault_path, output_root = resolve_obsidian_paths(settings_path)
+    return run_pipeline_from_urls(
+        request_path=request_path,
+        url_sources_path=url_sources_path,
+        vault_path=output_root,
+        work_dir=work_dir,
+        enrich=enrich,
+        timeout_seconds=timeout_seconds,
         run_root_path=output_root / "runs",
     )

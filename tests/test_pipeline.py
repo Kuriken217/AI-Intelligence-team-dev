@@ -10,10 +10,11 @@ from src.intel_mvp.delta import build_prior_knowledge_delta
 from src.intel_mvp.evaluate_cases import run_evaluation_cases
 from src.intel_mvp.evaluation import evaluate_run
 from src.intel_mvp.git_check import format_preflight, GitPreflightResult
-from src.intel_mvp.obsidian_direct import check_obsidian_write, resolve_obsidian_paths, run_pipeline_to_obsidian
-from src.intel_mvp.pipeline import parse_source_digest, run_pipeline, slugify
+from src.intel_mvp.obsidian_direct import check_obsidian_write, resolve_obsidian_paths, run_pipeline_to_obsidian, run_urls_to_obsidian
+from src.intel_mvp.pipeline import parse_source_digest, run_pipeline, should_write_daily_intelligence, slugify
 from src.intel_mvp.prior_knowledge import build_search_terms, filter_search_terms, find_related_notes
 from src.intel_mvp.review import append_decision, append_result, append_review
+from src.intel_mvp.stages import build_source_digest
 from src.intel_mvp.source_ingestion import is_http_url, write_source_digest_from_urls
 from src.intel_mvp.source_quality import is_primary_source, source_quality_gaps
 from src.intel_mvp.url_run import run_pipeline_from_urls
@@ -65,6 +66,24 @@ class PipelineTest(unittest.TestCase):
         self.assertIn("No primary source is currently included.", gaps)
         self.assertFalse(is_primary_source({"primary_source": "false"}))
         self.assertTrue(is_primary_source({"primary_source": "true"}))
+
+    def test_build_source_digest_records_no_immediate_gaps(self) -> None:
+        digest = build_source_digest(
+            [
+                {
+                    "title": f"Official source {index}",
+                    "summary": f"Official summary {index}.",
+                    "primary_source": "true",
+                    "reliability": "high",
+                }
+                for index in range(1, 4)
+            ]
+        )
+
+        self.assertEqual(
+            digest["collection_gaps"],
+            ["No immediate source quality gaps detected in the current source set."],
+        )
 
     def test_build_search_terms(self) -> None:
         terms = build_search_terms(
@@ -148,6 +167,11 @@ class PipelineTest(unittest.TestCase):
     def test_slugify_keeps_japanese_titles(self) -> None:
         self.assertEqual(slugify("AIデータセンター向け液冷市場の変化"), "AIデータセンター向け液冷市場の変化")
 
+    def test_should_write_daily_intelligence_for_news_requests(self) -> None:
+        self.assertTrue(should_write_daily_intelligence({"requested_output": "Daily Intelligence / News Brief"}))
+        self.assertTrue(should_write_daily_intelligence({"title": "Environment news"}))
+        self.assertFalse(should_write_daily_intelligence({"requested_output": "Strategic Intelligence"}))
+
     def test_validate_required_fields_reports_missing_values(self) -> None:
         result = validate_required_fields({"title": "Only title"}, {"required": ["title", "objective"]})
 
@@ -221,6 +245,46 @@ class PipelineTest(unittest.TestCase):
             evaluation = evaluate_run(root / "runs" / result.run_id)
             self.assertGreaterEqual(evaluation["score"], 80)
             self.assertTrue(evaluation["passed"])
+
+    def test_run_pipeline_creates_daily_intelligence_for_news_request(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            request_path = root / "request.json"
+            sources_path = root / "sources.md"
+            vault_path = root / "vault"
+            request_path.write_text(
+                json.dumps(
+                    {
+                        "title": "Environment News",
+                        "objective": "Create a news brief",
+                        "decision_context": "Decide whether to track it",
+                        "scope": ["climate"],
+                        "related_project": "Test Project",
+                        "priority": "high",
+                        "requested_output": "Daily Intelligence / News Brief",
+                        "tags": ["test"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            sources_path.write_text(
+                """# Source Digest
+
+## Source 1
+
+- title: Example
+- url: https://example.com
+- type: news
+- date: 2026-08-17
+- summary: Example climate summary.
+""",
+                encoding="utf-8",
+            )
+
+            result = run_pipeline(request_path, sources_path, vault_path)
+
+            self.assertEqual(len(result.created_notes), 7)
+            self.assertTrue(any(note.parent.name == "10_Daily_Intelligence" for note in result.created_notes))
 
     def test_check_obsidian_write_uses_configured_output_root(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -542,6 +606,66 @@ class PipelineTest(unittest.TestCase):
 
             self.assertTrue(result.source_digest_path.exists())
             self.assertEqual(len(result.pipeline_result.created_notes), 6)
+
+    def test_run_urls_to_obsidian_writes_under_output_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            request_path = root / "request.json"
+            urls_path = root / "urls.json"
+            settings_path = root / "settings.json"
+            vault_path = root / "vault"
+            work_dir = root / "work"
+            vault_path.mkdir()
+            settings_path.write_text(
+                json.dumps(
+                    {
+                        "obsidian_vault_path": str(vault_path),
+                        "obsidian_output_root": "AI_Intelligence_Unit",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            request_path.write_text(
+                json.dumps(
+                    {
+                        "title": "URL Direct Obsidian Test",
+                        "objective": "Verify URL direct Obsidian storage",
+                        "decision_context": "Decide whether the URL direct flow works",
+                        "scope": ["sources"],
+                        "related_project": "Test Project",
+                        "priority": "high",
+                        "requested_output": "Strategic Intelligence",
+                        "tags": ["test"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            urls_path.write_text(
+                json.dumps(
+                    {
+                        "sources": [
+                            {
+                                "title": "Example",
+                                "url": "https://example.com/source",
+                                "type": "web_page",
+                                "date": "2026-08-17",
+                                "publisher": "Example Publisher",
+                                "primary_source": False,
+                                "reliability": "medium",
+                                "summary": "Example summary.",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            result = run_urls_to_obsidian(request_path, urls_path, settings_path, work_dir)
+            output_root = vault_path / "AI_Intelligence_Unit"
+
+            self.assertTrue(result.source_digest_path.exists())
+            self.assertEqual(len(result.pipeline_result.created_notes), 6)
+            self.assertTrue((output_root / "runs" / result.pipeline_result.run_id).exists())
 
 
 if __name__ == "__main__":

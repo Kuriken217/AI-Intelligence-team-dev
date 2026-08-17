@@ -50,6 +50,12 @@ Generate notes directly under the configured Obsidian output folder:
 C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-to-obsidian --request examples\information_request.json --sources examples\sources.md --settings config\user_settings.json
 ```
 
+Fetch public URLs, build a source digest, and write the intelligence brief directly to Obsidian:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-urls-to-obsidian --request examples\environment_public_agency_request.json --urls examples\environment_public_agency_urls.json --settings config\user_settings.json --work-dir work\environment_public_agency --enrich
+```
+
 ## Run Tests
 
 ```bat

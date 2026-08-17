@@ -103,13 +103,18 @@ def run_pipeline(request_path: Path, sources_path: Path, vault_path: Path, run_r
         write_stage_json(run_path / "07_strategy_packet.json", strategy_packet, "strategy_packet", contracts_path),
     ]
 
-    created_notes = [
-        write_source_note(vault_path, request, sources, run_id, now, slug),
-        write_intelligence_report(vault_path, request, sources, run_id, now, slug),
-        write_hypothesis_note(vault_path, request, sources, run_id, now, slug),
-        write_decision_note(vault_path, request, run_id, now, slug),
-        write_result_note(vault_path, request, run_id, now, slug),
-    ]
+    created_notes = []
+    if should_write_daily_intelligence(request):
+        created_notes.append(write_daily_intelligence_note(vault_path, request, sources, run_id, now, slug))
+    created_notes.extend(
+        [
+            write_source_note(vault_path, request, sources, run_id, now, slug),
+            write_intelligence_report(vault_path, request, sources, run_id, now, slug),
+            write_hypothesis_note(vault_path, request, sources, run_id, now, slug),
+            write_decision_note(vault_path, request, run_id, now, slug),
+            write_result_note(vault_path, request, run_id, now, slug),
+        ]
+    )
     created_notes.append(write_review_queue_note(vault_path, request, created_notes, run_id, now, slug))
 
     knowledge_keeper_packet = build_knowledge_keeper_packet([str(note) for note in created_notes])
@@ -190,6 +195,92 @@ def parse_source_digest(source_text: str) -> list[dict[str, str]]:
     return sources
 
 
+def should_write_daily_intelligence(request: dict[str, Any]) -> bool:
+    text = " ".join(
+        [
+            str(request.get("title", "")),
+            str(request.get("requested_output", "")),
+            str(request.get("objective", "")),
+        ]
+    ).lower()
+    return any(token in text for token in ["daily intelligence", "news", "ニュース"])
+
+
+def write_daily_intelligence_note(
+    vault_path: Path,
+    request: dict[str, Any],
+    sources: list[dict[str, str]],
+    run_id: str,
+    now: datetime,
+    slug: str,
+) -> Path:
+    daily_stem = note_stem(now, slug, run_id, "daily_intelligence")
+    report_stem = note_stem(now, slug, run_id, "intelligence_report")
+    path = vault_path / "10_Daily_Intelligence" / f"{daily_stem}.md"
+    source_links = "\n".join(
+        f"- [{source.get('title', source.get('heading', 'Untitled'))}]({source.get('url', '')})"
+        for source in sources
+    )
+    key_developments = "\n".join(f"- {source.get('summary', 'No summary provided')}" for source in sources)
+    lead = sources[0].get("summary", "") if sources else "Official-source monitoring found a new intelligence item."
+    body = f"""---
+type: daily_intelligence
+status: user_review
+created: {now:%Y-%m-%d}
+updated: {now:%Y-%m-%d}
+source: multiple
+confidence: medium
+likelihood: monitored
+related_project: {request.get("related_project", "")}
+tags: {json.dumps(request.get("tags", []), ensure_ascii=False)}
+run_id: {run_id}
+---
+
+# Daily Intelligence: {request["title"]}
+
+## Headline
+
+Official climate monitors point to continued high global temperature and ocean-heat signals.
+
+## Lead
+
+{lead}
+
+## Key Developments
+
+{key_developments}
+
+## Why It Matters
+
+- The source set combines observed indicators, seasonal outlooks, and reference datasets from public agencies.
+- Ocean temperature, ENSO, sea ice, and global temperature indicators can affect disaster risk, food and water systems, insurance, energy demand, and policy attention.
+- The item is suitable for continued monitoring because each claim links back to a dated official source.
+
+## What To Watch Next
+
+- Next NOAA/NCEI monthly global climate report
+- Next NASA GISTEMP monthly update
+- Follow-up Copernicus sea surface temperature and climate bulletins
+- WMO ENSO and seasonal climate outlook updates
+
+## Red Team Checks
+
+- Do not present forecasts as observations.
+- Check whether the latest monthly release has superseded this note.
+- Preserve baseline periods and methods when comparing agencies.
+
+## Sources
+
+{source_links}
+
+## Linked Notes
+
+- Strategic Intelligence: [[{report_stem}]]
+"""
+    path.write_text(body, encoding="utf-8")
+    return path
+
+
 def write_source_note(
     vault_path: Path,
     request: dict[str, Any],
@@ -245,6 +336,7 @@ def write_intelligence_report(
     path = vault_path / "30_Strategic_Intelligence" / f"{report_stem}.md"
     fact_lines = "\n".join(f"- {source.get('summary', 'No summary provided')}" for source in sources)
     source_links = "\n".join(f"- [{source.get('title', source.get('heading', 'Untitled'))}]({source.get('url', '')})" for source in sources)
+    first_fact = next((source.get("summary", "") for source in sources if source.get("summary")), "")
     body = f"""---
 type: strategic_intelligence
 status: user_review
@@ -274,26 +366,28 @@ run_id: {run_id}
 
 ## 4. Analysis
 
-- The request should be evaluated against market demand, technical feasibility, supplier capability, and operational risk.
-- The current source set suggests a possible link between rising AI rack density and demand for liquid cooling.
-- Further primary-source validation is required before treating this as a strong investment or business-development thesis.
+- The source set is weighted toward official public-agency information, which improves traceability.
+- Observed indicators, forecast statements, and background dataset notes should be kept separate in the final judgment.
+- The most important near-term question is whether the signal remains consistent across the next official updates.
 
 ## 5. Integrated Intelligence
 
-The topic appears strategically relevant because it connects AI infrastructure growth with physical data center constraints. MVP review should focus on whether cooling demand is broad-based, economically durable, and tied to identifiable supplier advantage.
+{first_fact or "The available source set is sufficient for a monitored intelligence brief, but not for a final conclusion without follow-up validation."}
+
+The topic is suitable for user review because the sources are traceable, dated, and tied to concrete monitoring indicators.
 
 ## 6. Red Team Review
 
-- Source quality must be checked against primary disclosures, customer evidence, and deployment data.
-- The current evidence may overrepresent supplier announcements.
-- Alternative scenario: thermal constraints may be solved through broader infrastructure redesign rather than a narrow liquid-cooling supplier thesis.
-- Missing information: adoption rates, gross margins, retrofit economics, reliability data, customer concentration, and competitive differentiation.
+- Confirm that each source is the latest relevant official release before publishing.
+- Avoid treating forecasts as already-observed outcomes.
+- Regional impacts may differ materially from global indicators.
+- Missing information: next release timing, baseline periods, regional exceptions, and impact evidence.
 
 ## 7. Strategic Recommendation
 
-- Continue tracking this theme as a high-priority intelligence topic.
-- Build a supplier map and classify companies by direct exposure, customer validation, and defensibility.
-- Avoid firm conclusions until primary sources and deployment evidence are added.
+- Publish as a monitored intelligence brief if the user needs situational awareness now.
+- Track the next official updates and revise confidence when new data arrives.
+- Preserve source links and dates so the brief can be audited later.
 
 ## 8. User Review
 
@@ -339,7 +433,7 @@ run_id: {run_id}
 
 ## Hypothesis
 
-AI data center power density may create sustained demand for liquid cooling infrastructure and related suppliers.
+If multiple official indicators continue to point in the same direction, this topic should remain an active intelligence watch item.
 
 ## Supporting Evidence
 
@@ -347,23 +441,23 @@ AI data center power density may create sustained demand for liquid cooling infr
 
 ## What Would Increase Confidence
 
-- Primary-source customer adoption evidence
-- Multi-quarter supplier revenue contribution
-- Concrete hyperscaler deployment data
-- Evidence that liquid cooling is required rather than optional
+- Follow-up official releases confirm the same signal
+- Independent agencies report consistent indicators
+- Regional impact evidence aligns with the global pattern
+- Baseline periods and methods are clearly comparable
 
 ## What Would Decrease Confidence
 
-- Low utilization after pilots
-- Margin compression from commoditization
-- Reliability failures or maintenance cost escalation
-- Alternative cooling or facility designs reducing urgency
+- Later releases revise the signal downward
+- Indicators diverge across agencies or methods
+- Regional exceptions dominate the practical impact
+- The source set proves outdated or incomplete
 
 ## Next Research
 
-- Identify direct beneficiaries
-- Compare direct-to-chip, immersion, rear-door heat exchanger, and facility-level cooling approaches
-- Track standards, warranties, and operational incidents
+- Add the next official update
+- Compare observed records with forecast products
+- Track regional impacts and policy-relevant consequences
 """
     path.write_text(body, encoding="utf-8")
     return path
@@ -405,8 +499,8 @@ run_id: {run_id}
 
 ## Follow-up Actions
 
-- [ ] Add primary sources
-- [ ] Build company map
+- [ ] Add the next official update
+- [ ] Compare regional impact evidence
 - [ ] Review decision after new evidence
 """
     path.write_text(body, encoding="utf-8")

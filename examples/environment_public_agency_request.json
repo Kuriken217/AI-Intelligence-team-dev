@@ -1,0 +1,21 @@
+{
+  "title": "公的機関発表で見る地球環境変動ニュース",
+  "objective": "NOAA、WMO、Copernicus、NASAなどの公的・準公的機関の最新情報をもとに、地球環境変動の重要シグナルを短いニュースブリーフとして整理する。",
+  "decision_context": "Obsidian上で、公式ソースに基づく環境変動ニュースとしてユーザーが確認・追跡できるか判断する。",
+  "scope": [
+    "global temperature",
+    "sea surface temperature",
+    "ENSO outlook",
+    "sea ice",
+    "public agency monitoring"
+  ],
+  "related_project": "AI Intelligence Unit MVP",
+  "priority": "high",
+  "requested_output": "Daily Intelligence / News Brief",
+  "tags": [
+    "environment",
+    "climate",
+    "public-agency",
+    "obsidian"
+  ]
+}

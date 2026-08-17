@@ -1,0 +1,44 @@
+{
+  "sources": [
+    {
+      "title": "NOAA/NCEI: June 2026 global climate analysis",
+      "url": "https://www.ncei.noaa.gov/news/global-climate-202606",
+      "type": "public_agency_news",
+      "date": "2026-07-09",
+      "publisher": "NOAA National Centers for Environmental Information",
+      "primary_source": true,
+      "reliability": "high",
+      "summary": "NOAA/NCEI reported that June 2026 was the second-warmest June on record globally, with global ocean surface temperature the warmest on record for June, both poles ranking among their 10 lowest June sea ice extents, and above-average tropical cyclone activity."
+    },
+    {
+      "title": "WMO: Global Seasonal Climate Update for August-September-October 2026",
+      "url": "https://public.wmo.int/resources/publication-series/global-seasonal-climate-update/gscu-aso2026",
+      "type": "public_agency_outlook",
+      "date": "2026-07-31",
+      "publisher": "World Meteorological Organization",
+      "primary_source": true,
+      "reliability": "high",
+      "summary": "WMO's August-October 2026 update said a strong El Nino is developing and expected to strengthen, above-normal temperatures are expected worldwide, rainfall patterns show an El Nino footprint, and a positive Indian Ocean Dipole is expected to develop."
+    },
+    {
+      "title": "Copernicus: Daily global sea surface temperatures break records for the time of year",
+      "url": "https://climate.copernicus.eu/copernicus-marine-and-copernicus-climate-change-daily-global-sea-surface-temperatures-break-records",
+      "type": "public_agency_news",
+      "date": "2026-07-01",
+      "publisher": "Copernicus Climate Change Service and Copernicus Marine Service",
+      "primary_source": true,
+      "reliability": "high",
+      "summary": "Copernicus reported that daily global sea surface temperatures exceeded previous record levels for the time of year, with C3S daily SST reaching 20.86 C on 21 June 2026 and Copernicus Marine indicating 21.0 C."
+    },
+    {
+      "title": "NASA GISS: GISTEMP v4 dataset and monthly update schedule",
+      "url": "https://data.giss.nasa.gov/gistemp/index.html",
+      "type": "public_agency_dataset",
+      "date": "2026-07-08",
+      "publisher": "NASA Goddard Institute for Space Studies",
+      "primary_source": true,
+      "reliability": "high",
+      "summary": "NASA GISS describes GISTEMP v4 as a global surface temperature analysis updated about the 10th of each month using NOAA GHCN v4 station data and ERSST ocean data, providing a cross-checkable official dataset for temperature monitoring."
+    }
+  ]
+}

@@ -362,6 +362,25 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(metadata.description, "Example description.")
         self.assertIn("Main body text", metadata.text_excerpt)
 
+    def test_extract_page_metadata_citation_fields(self) -> None:
+        metadata = extract_page_metadata(
+            """<!doctype html>
+<html>
+<head>
+  <title>Example</title>
+  <link rel="canonical" href="https://example.gov/report">
+  <meta property="og:site_name" content="Example Government">
+  <meta property="article:published_time" content="2026-08-17">
+</head>
+<body><p>Report body.</p></body>
+</html>"""
+        )
+
+        self.assertEqual(metadata.publisher, "Example Government")
+        self.assertEqual(metadata.published_date, "2026-08-17")
+        self.assertEqual(metadata.canonical_url, "https://example.gov/report")
+        self.assertEqual(metadata.reliability, "high")
+
     def test_enrich_url_sources_records_fetch_errors(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

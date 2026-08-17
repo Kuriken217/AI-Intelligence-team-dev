@@ -41,6 +41,24 @@ def render_source_digest(sources: list[dict[str, Any]]) -> str:
 
 def render_source_block(source: dict[str, Any], index: int) -> str:
     primary_source = str(source["primary_source"]).lower()
+    optional_lines = []
+    if source.get("canonical_url"):
+        optional_lines.append(f"- canonical_url: {source['canonical_url']}")
+    if source.get("fetched_title"):
+        optional_lines.append(f"- fetched_title: {source['fetched_title']}")
+    if source.get("fetched_description"):
+        optional_lines.append(f"- fetched_description: {source['fetched_description']}")
+    if source.get("fetched_text_excerpt"):
+        optional_lines.append(f"- fetched_text_excerpt: {source['fetched_text_excerpt']}")
+    if source.get("fetched_publisher"):
+        optional_lines.append(f"- fetched_publisher: {source['fetched_publisher']}")
+    if source.get("fetched_date"):
+        optional_lines.append(f"- fetched_date: {source['fetched_date']}")
+    if source.get("fetched_reliability"):
+        optional_lines.append(f"- fetched_reliability: {source['fetched_reliability']}")
+    if source.get("fetch_error"):
+        optional_lines.append(f"- fetch_error: {source['fetch_error']}")
+    optional = "\n" + "\n".join(optional_lines) if optional_lines else ""
     return f"""## Source {index}
 
 - title: {source["title"]}
@@ -50,7 +68,7 @@ def render_source_block(source: dict[str, Any], index: int) -> str:
 - publisher: {source["publisher"]}
 - primary_source: {primary_source}
 - reliability: {source["reliability"]}
-- summary: {source["summary"]}"""
+- summary: {source["summary"]}{optional}"""
 
 
 def write_source_digest_from_urls(input_path: Path, output_path: Path) -> Path:
@@ -58,4 +76,3 @@ def write_source_digest_from_urls(input_path: Path, output_path: Path) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(render_source_digest(sources), encoding="utf-8")
     return output_path
-

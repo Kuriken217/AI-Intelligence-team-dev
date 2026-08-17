@@ -66,5 +66,9 @@ The command extracts:
 - fetched title
 - meta description
 - text excerpt
+- publisher or site name
+- published date
+- canonical URL
+- estimated reliability
 
 This is intentionally separate from `ingest-urls` so manually curated source metadata remains possible.

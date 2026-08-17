@@ -99,9 +99,9 @@ Requires user approval or input when: creating or connecting a GitHub repository
 - [x] Convert URL source JSON into source digest Markdown
 - [x] Fetch page metadata and text when permitted
 - [x] Extract source title, summary, and text excerpt
-- [ ] Extract publisher, date, and reliability
-- [ ] Preserve citation links
-- [ ] Add tests with fixture HTML or Markdown
+- [x] Extract publisher, date, and reliability
+- [x] Preserve citation links
+- [x] Add tests with fixture HTML or Markdown
 
 Done when: the MVP can create traceable source digests from user-provided URLs.
 

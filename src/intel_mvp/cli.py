@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
 try:
     from .evaluation import write_evaluation_report
+    from .obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian
     from .pipeline import run_pipeline
     from .review import append_decision, append_result, append_review
     from .source_ingestion import write_source_digest_from_urls
@@ -12,6 +14,7 @@ try:
     from .web_enrichment import enrich_url_sources_file
 except ImportError:
     from evaluation import write_evaluation_report
+    from obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian
     from pipeline import run_pipeline
     from review import append_decision, append_result, append_review
     from source_ingestion import write_source_digest_from_urls
@@ -27,6 +30,14 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--request", required=True, help="Path to the information request JSON file.")
     run_parser.add_argument("--sources", required=True, help="Path to the source digest Markdown file.")
     run_parser.add_argument("--vault", required=True, help="Path to the Obsidian vault output directory.")
+
+    obsidian_check_parser = subparsers.add_parser("check-obsidian-write", help="Verify direct write access to the configured Obsidian vault.")
+    obsidian_check_parser.add_argument("--settings", default="config/user_settings.json", help="Path to local user settings JSON.")
+
+    run_obsidian_parser = subparsers.add_parser("run-to-obsidian", help="Generate notes directly into the configured Obsidian vault.")
+    run_obsidian_parser.add_argument("--request", required=True, help="Path to the information request JSON file.")
+    run_obsidian_parser.add_argument("--sources", required=True, help="Path to the source digest Markdown file.")
+    run_obsidian_parser.add_argument("--settings", default="config/user_settings.json", help="Path to local user settings JSON.")
 
     review_parser = subparsers.add_parser("review", help="Append a user review to an Obsidian note.")
     review_parser.add_argument("--note", required=True, help="Path to the note to update.")
@@ -69,6 +80,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = build_parser()
     args = parser.parse_args()
 
@@ -77,6 +91,29 @@ def main() -> int:
             request_path=Path(args.request),
             sources_path=Path(args.sources),
             vault_path=Path(args.vault),
+        )
+        print(f"Created intelligence run: {result.run_id}")
+        print("Run files:")
+        for run_file in result.run_files:
+            print(f"- {run_file}")
+        print("Obsidian notes:")
+        for note in result.created_notes:
+            print(f"- {note}")
+        return 0
+
+    if args.command == "check-obsidian-write":
+        result = check_obsidian_write(Path(args.settings))
+        print(f"ok={str(result.ok).lower()}")
+        print(f"vault_path={result.vault_path}")
+        print(f"output_root={result.output_root}")
+        print(f"message={result.message}")
+        return 0 if result.ok else 1
+
+    if args.command == "run-to-obsidian":
+        result = run_pipeline_to_obsidian(
+            request_path=Path(args.request),
+            sources_path=Path(args.sources),
+            settings_path=Path(args.settings),
         )
         print(f"Created intelligence run: {result.run_id}")
         print("Run files:")

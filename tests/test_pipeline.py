@@ -10,6 +10,7 @@ from src.intel_mvp.delta import build_prior_knowledge_delta
 from src.intel_mvp.evaluate_cases import run_evaluation_cases
 from src.intel_mvp.evaluation import evaluate_run
 from src.intel_mvp.git_check import format_preflight, GitPreflightResult
+from src.intel_mvp.obsidian_direct import check_obsidian_write, resolve_obsidian_paths, run_pipeline_to_obsidian
 from src.intel_mvp.pipeline import parse_source_digest, run_pipeline, slugify
 from src.intel_mvp.prior_knowledge import build_search_terms, filter_search_terms, find_related_notes
 from src.intel_mvp.review import append_decision, append_result, append_review
@@ -220,6 +221,89 @@ class PipelineTest(unittest.TestCase):
             evaluation = evaluate_run(root / "runs" / result.run_id)
             self.assertGreaterEqual(evaluation["score"], 80)
             self.assertTrue(evaluation["passed"])
+
+    def test_check_obsidian_write_uses_configured_output_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            vault_path = root / "vault"
+            settings_path = root / "settings.json"
+            vault_path.mkdir()
+            settings_path.write_text(
+                json.dumps(
+                    {
+                        "obsidian_vault_path": str(vault_path),
+                        "obsidian_output_root": "AI_Intelligence_Unit",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            vault, output_root = resolve_obsidian_paths(settings_path)
+            result = check_obsidian_write(settings_path)
+
+            self.assertEqual(vault, vault_path)
+            self.assertEqual(output_root, vault_path / "AI_Intelligence_Unit")
+            self.assertTrue(result.ok)
+            self.assertTrue(output_root.exists())
+            self.assertFalse((output_root / ".codex_write_test.md").exists())
+
+    def test_run_pipeline_to_obsidian_writes_under_output_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            request_path = root / "request.json"
+            sources_path = root / "sources.md"
+            vault_path = root / "vault"
+            settings_path = root / "settings.json"
+            vault_path.mkdir()
+            settings_path.write_text(
+                json.dumps(
+                    {
+                        "obsidian_vault_path": str(vault_path),
+                        "obsidian_output_root": "AI_Intelligence_Unit",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            request_path.write_text(
+                json.dumps(
+                    {
+                        "title": "Direct Obsidian Test",
+                        "objective": "Verify direct Obsidian storage",
+                        "decision_context": "Decide whether direct writing works",
+                        "scope": ["storage"],
+                        "related_project": "Test Project",
+                        "priority": "high",
+                        "requested_output": "Strategic Intelligence",
+                        "tags": ["test"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            sources_path.write_text(
+                """# Source Digest
+
+## Source 1
+
+- title: Example
+- url: https://example.com
+- type: web_page
+- date: 2026-08-17
+- publisher: Example
+- primary_source: false
+- reliability: medium
+- summary: Example summary.
+""",
+                encoding="utf-8",
+            )
+
+            result = run_pipeline_to_obsidian(request_path, sources_path, settings_path)
+            output_root = vault_path / "AI_Intelligence_Unit"
+
+            self.assertEqual(len(result.created_notes), 6)
+            self.assertTrue((output_root / "runs" / result.run_id).exists())
+            for note in result.created_notes:
+                self.assertTrue(note.exists())
+                self.assertTrue(output_root in note.parents)
 
     def test_run_evaluation_cases(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

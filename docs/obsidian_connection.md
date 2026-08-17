@@ -20,6 +20,32 @@ The working local setup uses a local synced vault path in `config/user_settings.
 
 That file is intentionally ignored by Git so personal environment paths are not pushed to GitHub.
 
+Generated MVP notes are written under `obsidian_output_root` inside the vault. The default is:
+
+```text
+AI_Intelligence_Unit
+```
+
+This keeps direct pipeline output separated from the user's existing Obsidian folders while still making the notes visible in Obsidian.
+
+## Direct Write Check
+
+Use this command to verify direct write access before running the pipeline against the real vault:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py check-obsidian-write --settings config\user_settings.json
+```
+
+The command creates, reads, and removes a temporary `.codex_write_test.md` file in the configured output folder.
+
+## Direct Obsidian Run
+
+Use this command to generate the MVP note set directly into the configured Obsidian output folder:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-to-obsidian --request examples\information_request.json --sources examples\sources.md --settings config\user_settings.json
+```
+
 ## MVP Behavior
 
 When the configured vault is readable, the pipeline will:

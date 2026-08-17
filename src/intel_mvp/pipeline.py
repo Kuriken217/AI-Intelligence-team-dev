@@ -56,7 +56,7 @@ class PipelineResult:
     run_files: list[Path]
 
 
-def run_pipeline(request_path: Path, sources_path: Path, vault_path: Path) -> PipelineResult:
+def run_pipeline(request_path: Path, sources_path: Path, vault_path: Path, run_root_path: Path | None = None) -> PipelineResult:
     request = json.loads(request_path.read_text(encoding="utf-8"))
     contracts_path = request_path.parent.parent / "config" / "io_schemas.json"
     if contracts_path.exists():
@@ -75,7 +75,7 @@ def run_pipeline(request_path: Path, sources_path: Path, vault_path: Path) -> Pi
     ensure_vault(vault_path)
     write_templates(vault_path)
 
-    run_path = vault_path.parent / "runs" / run_id
+    run_path = (run_root_path or vault_path.parent / "runs") / run_id
     run_path.mkdir(parents=True, exist_ok=True)
 
     prior_knowledge_summary = build_prior_knowledge_summary(request, request_path.parent.parent / "config" / "user_settings.json")
@@ -119,6 +119,7 @@ def run_pipeline(request_path: Path, sources_path: Path, vault_path: Path) -> Pi
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
 
@@ -197,7 +198,8 @@ def write_source_note(
     now: datetime,
     slug: str,
 ) -> Path:
-    path = vault_path / "90_Sources" / f"{now:%Y-%m-%d}_{slug}_source_digest.md"
+    source_stem = note_stem(now, slug, run_id, "source_digest")
+    path = vault_path / "90_Sources" / f"{source_stem}.md"
     source_blocks = "\n\n".join(format_source(source, index + 1) for index, source in enumerate(sources))
     body = f"""---
 type: source_digest
@@ -235,7 +237,12 @@ def write_intelligence_report(
     now: datetime,
     slug: str,
 ) -> Path:
-    path = vault_path / "30_Strategic_Intelligence" / f"{now:%Y-%m-%d}_{slug}_intelligence_report.md"
+    report_stem = note_stem(now, slug, run_id, "intelligence_report")
+    source_stem = note_stem(now, slug, run_id, "source_digest")
+    hypothesis_stem = note_stem(now, slug, run_id, "hypothesis")
+    decision_stem = note_stem(now, slug, run_id, "decision")
+    result_stem = note_stem(now, slug, run_id, "result")
+    path = vault_path / "30_Strategic_Intelligence" / f"{report_stem}.md"
     fact_lines = "\n".join(f"- {source.get('summary', 'No summary provided')}" for source in sources)
     source_links = "\n".join(f"- [{source.get('title', source.get('heading', 'Untitled'))}]({source.get('url', '')})" for source in sources)
     body = f"""---
@@ -297,10 +304,10 @@ The topic appears strategically relevant because it connects AI infrastructure g
 
 ## 9. Links
 
-- Source Digest: [[{now:%Y-%m-%d}_{slug}_source_digest]]
-- Hypothesis: [[{now:%Y-%m-%d}_{slug}_hypothesis]]
-- Decision: [[{now:%Y-%m-%d}_{slug}_decision]]
-- Result: [[{now:%Y-%m-%d}_{slug}_result]]
+- Source Digest: [[{source_stem}]]
+- Hypothesis: [[{hypothesis_stem}]]
+- Decision: [[{decision_stem}]]
+- Result: [[{result_stem}]]
 """
     path.write_text(body, encoding="utf-8")
     return path
@@ -314,7 +321,7 @@ def write_hypothesis_note(
     now: datetime,
     slug: str,
 ) -> Path:
-    path = vault_path / "50_Hypotheses" / f"{now:%Y-%m-%d}_{slug}_hypothesis.md"
+    path = vault_path / "50_Hypotheses" / f"{note_stem(now, slug, run_id, 'hypothesis')}.md"
     body = f"""---
 type: hypothesis
 status: draft
@@ -363,13 +370,14 @@ AI data center power density may create sustained demand for liquid cooling infr
 
 
 def write_decision_note(vault_path: Path, request: dict[str, Any], run_id: str, now: datetime, slug: str) -> Path:
-    path = vault_path / "60_Decisions" / f"{now:%Y-%m-%d}_{slug}_decision.md"
+    report_stem = note_stem(now, slug, run_id, "intelligence_report")
+    path = vault_path / "60_Decisions" / f"{note_stem(now, slug, run_id, 'decision')}.md"
     body = f"""---
 type: decision
 status: pending
 created: {now:%Y-%m-%d}
 updated: {now:%Y-%m-%d}
-source: "[[{now:%Y-%m-%d}_{slug}_intelligence_report]]"
+source: "[[{report_stem}]]"
 confidence:
 likelihood:
 related_project: {request.get("related_project", "")}
@@ -406,13 +414,14 @@ run_id: {run_id}
 
 
 def write_result_note(vault_path: Path, request: dict[str, Any], run_id: str, now: datetime, slug: str) -> Path:
-    path = vault_path / "70_Actions_and_Results" / f"{now:%Y-%m-%d}_{slug}_result.md"
+    decision_stem = note_stem(now, slug, run_id, "decision")
+    path = vault_path / "70_Actions_and_Results" / f"{note_stem(now, slug, run_id, 'result')}.md"
     body = f"""---
 type: result
 status: waiting
 created: {now:%Y-%m-%d}
 updated: {now:%Y-%m-%d}
-source: "[[{now:%Y-%m-%d}_{slug}_decision]]"
+source: "[[{decision_stem}]]"
 confidence:
 likelihood:
 related_project: {request.get("related_project", "")}
@@ -454,7 +463,7 @@ def write_review_queue_note(
     now: datetime,
     slug: str,
 ) -> Path:
-    path = vault_path / "00_Inbox" / f"{now:%Y-%m-%d}_{slug}_review_queue.md"
+    path = vault_path / "00_Inbox" / f"{note_stem(now, slug, run_id, 'review_queue')}.md"
     links = "\n".join(f"- [ ] [[{note.stem}]]" for note in notes)
     body = f"""---
 type: review_queue
@@ -505,6 +514,10 @@ def slugify(value: str) -> str:
     filename_safe = re.sub(r"\s+", "-", filename_safe)
     filename_safe = re.sub(r"-+", "-", filename_safe)
     return filename_safe[:80].strip(".-") or "intelligence-request"
+
+
+def note_stem(now: datetime, slug: str, run_id: str, kind: str) -> str:
+    return f"{now:%Y-%m-%d}_{slug}_{run_id}_{kind}"
 
 
 def intelligence_template() -> str:

@@ -36,6 +36,20 @@ Use the bundled Python runtime if Python is not available in your normal termina
 C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run --request examples\information_request.json --sources examples\sources.md --vault obsidian_vault
 ```
 
+## Write Directly To Obsidian
+
+Set `obsidian_vault_path` and `obsidian_output_root` in `config/user_settings.json`, then verify write access:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py check-obsidian-write --settings config\user_settings.json
+```
+
+Generate notes directly under the configured Obsidian output folder:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-to-obsidian --request examples\information_request.json --sources examples\sources.md --settings config\user_settings.json
+```
+
 ## Run Tests
 
 ```bat
@@ -52,6 +66,8 @@ C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\p
 
 Copy `config/user_settings.example.json` to `config/user_settings.json` and set your local Obsidian vault path.
 `config/user_settings.json` is intentionally ignored by Git.
+
+Generated MVP notes are written under the configured `obsidian_output_root` folder inside the vault so the project output stays grouped together.
 
 ## MVP Completion Target
 

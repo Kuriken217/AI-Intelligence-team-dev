@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -45,6 +45,7 @@ VAULT_FOLDERS = [
     "60_Decisions",
     "70_Actions_and_Results",
     "90_Sources",
+    "99_Mobile_Review",
     "Templates",
 ]
 
@@ -54,6 +55,7 @@ class PipelineResult:
     run_id: str
     created_notes: list[Path]
     run_files: list[Path]
+    mobile_files: list[Path] = field(default_factory=list)
 
 
 def run_pipeline(request_path: Path, sources_path: Path, vault_path: Path, run_root_path: Path | None = None) -> PipelineResult:

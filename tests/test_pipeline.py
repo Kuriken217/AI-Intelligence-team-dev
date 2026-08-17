@@ -10,8 +10,9 @@ from src.intel_mvp.delta import build_prior_knowledge_delta
 from src.intel_mvp.evaluate_cases import run_evaluation_cases
 from src.intel_mvp.evaluation import evaluate_run
 from src.intel_mvp.git_check import format_preflight, GitPreflightResult
+from src.intel_mvp.mobile_review import write_mobile_review_copies
 from src.intel_mvp.obsidian_direct import check_obsidian_write, resolve_obsidian_paths, run_pipeline_to_obsidian, run_urls_to_obsidian
-from src.intel_mvp.pipeline import parse_source_digest, run_pipeline, should_write_daily_intelligence, slugify
+from src.intel_mvp.pipeline import PipelineResult, parse_source_digest, run_pipeline, should_write_daily_intelligence, slugify
 from src.intel_mvp.prior_knowledge import build_search_terms, filter_search_terms, find_related_notes
 from src.intel_mvp.review import append_decision, append_result, append_review
 from src.intel_mvp.stages import build_source_digest
@@ -365,9 +366,38 @@ class PipelineTest(unittest.TestCase):
 
             self.assertEqual(len(result.created_notes), 6)
             self.assertTrue((output_root / "runs" / result.run_id).exists())
+            self.assertTrue((output_root / "99_Mobile_Review" / "latest_review.txt").exists())
+            self.assertGreaterEqual(len(result.mobile_files), 2)
             for note in result.created_notes:
                 self.assertTrue(note.exists())
                 self.assertTrue(output_root in note.parents)
+
+    def test_write_mobile_review_copies_creates_txt_files(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            output_root = root / "vault"
+            daily_note = output_root / "10_Daily_Intelligence" / "daily.md"
+            report_note = output_root / "30_Strategic_Intelligence" / "report.md"
+            daily_note.parent.mkdir(parents=True)
+            report_note.parent.mkdir(parents=True)
+            daily_note.write_text("# Daily\n\nMobile readable.", encoding="utf-8")
+            report_note.write_text("# Report\n\nStrategic note.", encoding="utf-8")
+
+            files = write_mobile_review_copies(
+                output_root=output_root,
+                pipeline_result=PipelineResult(
+                    run_id="20260817-000000-000000",
+                    created_notes=[report_note, daily_note],
+                    run_files=[],
+                ),
+                settings={"mobile_review_copy": {"enabled": True, "folder": "99_Mobile_Review"}},
+                title="Mobile Test",
+            )
+
+            self.assertTrue((output_root / "99_Mobile_Review" / "latest_review.txt").exists())
+            self.assertTrue((output_root / "99_Mobile_Review" / "20260817-000000-000000" / "01_daily_intelligence.txt").exists())
+            self.assertTrue((output_root / "99_Mobile_Review" / "20260817-000000-000000" / "00_index.txt").exists())
+            self.assertGreaterEqual(len(files), 4)
 
     def test_run_evaluation_cases(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -666,6 +696,8 @@ class PipelineTest(unittest.TestCase):
             self.assertTrue(result.source_digest_path.exists())
             self.assertEqual(len(result.pipeline_result.created_notes), 6)
             self.assertTrue((output_root / "runs" / result.pipeline_result.run_id).exists())
+            self.assertTrue((output_root / "99_Mobile_Review" / "latest_review.txt").exists())
+            self.assertGreaterEqual(len(result.pipeline_result.mobile_files), 2)
 
 
 if __name__ == "__main__":

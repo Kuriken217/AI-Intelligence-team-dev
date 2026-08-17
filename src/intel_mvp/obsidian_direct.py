@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 try:
+    from .mobile_review import write_mobile_review_copies
     from .pipeline import PipelineResult, run_pipeline
     from .prior_knowledge import load_user_settings
     from .url_run import UrlRunResult, run_pipeline_from_urls
 except ImportError:
+    from mobile_review import write_mobile_review_copies
     from pipeline import PipelineResult, run_pipeline
     from prior_knowledge import load_user_settings
     from url_run import UrlRunResult, run_pipeline_from_urls
@@ -71,13 +74,17 @@ def check_obsidian_write(settings_path: Path) -> ObsidianWriteCheck:
 
 
 def run_pipeline_to_obsidian(request_path: Path, sources_path: Path, settings_path: Path) -> PipelineResult:
+    settings = load_user_settings(settings_path)
     _vault_path, output_root = resolve_obsidian_paths(settings_path)
-    return run_pipeline(
+    result = run_pipeline(
         request_path=request_path,
         sources_path=sources_path,
         vault_path=output_root,
         run_root_path=output_root / "runs",
     )
+    title = json.loads(request_path.read_text(encoding="utf-8")).get("title", "")
+    mobile_files = write_mobile_review_copies(output_root, result, settings, str(title))
+    return replace(result, mobile_files=mobile_files)
 
 
 def run_urls_to_obsidian(
@@ -88,8 +95,9 @@ def run_urls_to_obsidian(
     enrich: bool = False,
     timeout_seconds: int = 15,
 ) -> UrlRunResult:
+    settings = load_user_settings(settings_path)
     _vault_path, output_root = resolve_obsidian_paths(settings_path)
-    return run_pipeline_from_urls(
+    result = run_pipeline_from_urls(
         request_path=request_path,
         url_sources_path=url_sources_path,
         vault_path=output_root,
@@ -98,3 +106,7 @@ def run_urls_to_obsidian(
         timeout_seconds=timeout_seconds,
         run_root_path=output_root / "runs",
     )
+    title = json.loads(request_path.read_text(encoding="utf-8")).get("title", "")
+    mobile_files = write_mobile_review_copies(output_root, result.pipeline_result, settings, str(title))
+    pipeline_result = replace(result.pipeline_result, mobile_files=mobile_files)
+    return replace(result, pipeline_result=pipeline_result)

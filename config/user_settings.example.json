@@ -1,6 +1,11 @@
 {
   "obsidian_vault_path": "C:\\path\\to\\your\\obsidian\\vault",
   "obsidian_output_root": "AI_Intelligence_Unit",
+  "mobile_review_copy": {
+    "enabled": true,
+    "folder": "99_Mobile_Review",
+    "format": "txt"
+  },
   "prior_knowledge": {
     "enabled": true,
     "max_notes": 10,

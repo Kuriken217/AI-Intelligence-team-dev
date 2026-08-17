@@ -110,6 +110,10 @@ def main() -> int:
         print("Obsidian notes:")
         for note in result.created_notes:
             print(f"- {note}")
+        if result.mobile_files:
+            print("Mobile review files:")
+            for mobile_file in result.mobile_files:
+                print(f"- {mobile_file}")
         return 0
 
     if args.command == "check-obsidian-write":
@@ -133,6 +137,10 @@ def main() -> int:
         print("Obsidian notes:")
         for note in result.created_notes:
             print(f"- {note}")
+        if result.mobile_files:
+            print("Mobile review files:")
+            for mobile_file in result.mobile_files:
+                print(f"- {mobile_file}")
         return 0
 
     if args.command == "run-urls-to-obsidian":
@@ -154,6 +162,10 @@ def main() -> int:
         print("Obsidian notes:")
         for note in result.pipeline_result.created_notes:
             print(f"- {note}")
+        if result.pipeline_result.mobile_files:
+            print("Mobile review files:")
+            for mobile_file in result.pipeline_result.mobile_files:
+                print(f"- {mobile_file}")
         return 0
 
     if args.command == "review":

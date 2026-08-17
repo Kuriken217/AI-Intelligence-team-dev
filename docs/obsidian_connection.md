@@ -38,6 +38,18 @@ C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\p
 
 The command creates, reads, and removes a temporary `.codex_write_test.md` file in the configured output folder.
 
+## Mobile Google Drive Review
+
+Obsidian notes stay in `.md` format because that is the vault source format.
+
+Some mobile Google Drive clients do not preview Markdown or JSON reliably, so direct Obsidian runs also write plain-text copies under:
+
+```text
+AI_Intelligence_Unit\99_Mobile_Review
+```
+
+Use `latest_review.txt` for the newest mobile-friendly brief. Each run also gets its own folder with `00_index.txt` and numbered `.txt` files.
+
 ## Direct Obsidian Run
 
 Use this command to generate the MVP note set directly into the configured Obsidian output folder:

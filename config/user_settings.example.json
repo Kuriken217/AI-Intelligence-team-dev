@@ -3,7 +3,7 @@
   "obsidian_output_root": "AI_Intelligence_Unit",
   "mobile_review_copy": {
     "enabled": true,
-    "folder": "99_Mobile_Review",
+    "folder_name": "For Mobile",
     "format": "txt"
   },
   "prior_knowledge": {

@@ -42,13 +42,15 @@ The command creates, reads, and removes a temporary `.codex_write_test.md` file 
 
 Obsidian notes stay in `.md` format because that is the vault source format.
 
-Some mobile Google Drive clients do not preview Markdown or JSON reliably, so direct Obsidian runs also write plain-text copies under:
+Some mobile Google Drive clients do not preview Markdown or JSON reliably, so direct Obsidian runs also write plain-text copies under each category folder:
 
 ```text
-AI_Intelligence_Unit\99_Mobile_Review
+AI_Intelligence_Unit\10_Daily_Intelligence\For Mobile
+AI_Intelligence_Unit\30_Strategic_Intelligence\For Mobile
+AI_Intelligence_Unit\00_Inbox\For Mobile
 ```
 
-Use `latest_review.txt` for the newest mobile-friendly brief. Each run also gets its own folder with `00_index.txt` and numbered `.txt` files.
+Use `latest.txt` inside the relevant `For Mobile` folder for the newest mobile-friendly copy of that category.
 
 ## Direct Obsidian Run
 

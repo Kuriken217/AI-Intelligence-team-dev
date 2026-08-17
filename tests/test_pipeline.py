@@ -366,7 +366,7 @@ class PipelineTest(unittest.TestCase):
 
             self.assertEqual(len(result.created_notes), 6)
             self.assertTrue((output_root / "runs" / result.run_id).exists())
-            self.assertTrue((output_root / "99_Mobile_Review" / "latest_review.txt").exists())
+            self.assertTrue((output_root / "30_Strategic_Intelligence" / "For Mobile" / "latest.txt").exists())
             self.assertGreaterEqual(len(result.mobile_files), 2)
             for note in result.created_notes:
                 self.assertTrue(note.exists())
@@ -380,8 +380,8 @@ class PipelineTest(unittest.TestCase):
             report_note = output_root / "30_Strategic_Intelligence" / "report.md"
             daily_note.parent.mkdir(parents=True)
             report_note.parent.mkdir(parents=True)
-            daily_note.write_text("# Daily\n\nMobile readable.", encoding="utf-8")
-            report_note.write_text("# Report\n\nStrategic note.", encoding="utf-8")
+            daily_note.write_text("---\ntype: daily_intelligence\n---\n\n# Daily\n\nMobile readable.", encoding="utf-8")
+            report_note.write_text("# Report\n\n[Source](https://example.com)\n\n[[Decision Note]]", encoding="utf-8")
 
             files = write_mobile_review_copies(
                 output_root=output_root,
@@ -390,13 +390,18 @@ class PipelineTest(unittest.TestCase):
                     created_notes=[report_note, daily_note],
                     run_files=[],
                 ),
-                settings={"mobile_review_copy": {"enabled": True, "folder": "99_Mobile_Review"}},
+                settings={"mobile_review_copy": {"enabled": True, "folder_name": "For Mobile"}},
                 title="Mobile Test",
             )
 
-            self.assertTrue((output_root / "99_Mobile_Review" / "latest_review.txt").exists())
-            self.assertTrue((output_root / "99_Mobile_Review" / "20260817-000000-000000" / "01_daily_intelligence.txt").exists())
-            self.assertTrue((output_root / "99_Mobile_Review" / "20260817-000000-000000" / "00_index.txt").exists())
+            daily_txt = output_root / "10_Daily_Intelligence" / "For Mobile" / "daily.txt"
+            report_txt = output_root / "30_Strategic_Intelligence" / "For Mobile" / "report.txt"
+            self.assertTrue(daily_txt.exists())
+            self.assertTrue((output_root / "10_Daily_Intelligence" / "For Mobile" / "latest.txt").exists())
+            self.assertTrue(report_txt.exists())
+            self.assertNotIn("type: daily_intelligence", daily_txt.read_text(encoding="utf-8"))
+            self.assertIn("Mobile readable.", daily_txt.read_text(encoding="utf-8"))
+            self.assertIn("URL: https://example.com", report_txt.read_text(encoding="utf-8"))
             self.assertGreaterEqual(len(files), 4)
 
     def test_run_evaluation_cases(self) -> None:
@@ -696,7 +701,7 @@ class PipelineTest(unittest.TestCase):
             self.assertTrue(result.source_digest_path.exists())
             self.assertEqual(len(result.pipeline_result.created_notes), 6)
             self.assertTrue((output_root / "runs" / result.pipeline_result.run_id).exists())
-            self.assertTrue((output_root / "99_Mobile_Review" / "latest_review.txt").exists())
+            self.assertTrue((output_root / "30_Strategic_Intelligence" / "For Mobile" / "latest.txt").exists())
             self.assertGreaterEqual(len(result.pipeline_result.mobile_files), 2)
 
 

@@ -75,8 +75,8 @@ Copy `config/user_settings.example.json` to `config/user_settings.json` and set 
 
 Generated MVP notes are written under the configured `obsidian_output_root` folder inside the vault so the project output stays grouped together.
 
-For mobile Google Drive review, the Obsidian direct commands also create `.txt` copies under `99_Mobile_Review`.
-Use `latest_review.txt` for the newest mobile-friendly brief.
+For mobile Google Drive review, the Obsidian direct commands also create plain `.txt` copies under each note category's `For Mobile` folder.
+For example, use `10_Daily_Intelligence\For Mobile\latest.txt` for the newest mobile-friendly daily brief.
 
 ## MVP Completion Target
 

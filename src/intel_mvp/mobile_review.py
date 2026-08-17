@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -9,17 +10,7 @@ except ImportError:
     from pipeline import PipelineResult
 
 
-DEFAULT_MOBILE_REVIEW_FOLDER = "99_Mobile_Review"
-
-NOTE_ORDER = {
-    "10_Daily_Intelligence": "01_daily_intelligence",
-    "00_Inbox": "02_review_queue",
-    "30_Strategic_Intelligence": "03_strategic_intelligence",
-    "50_Hypotheses": "04_hypothesis",
-    "60_Decisions": "05_decision",
-    "70_Actions_and_Results": "06_result",
-    "90_Sources": "07_source_digest",
-}
+DEFAULT_MOBILE_FOLDER_NAME = "For Mobile"
 
 
 def mobile_review_enabled(settings: dict[str, Any]) -> bool:
@@ -31,13 +22,13 @@ def mobile_review_enabled(settings: dict[str, Any]) -> bool:
     return True
 
 
-def mobile_review_folder_name(settings: dict[str, Any]) -> str:
+def mobile_folder_name(settings: dict[str, Any]) -> str:
     options = settings.get("mobile_review_copy", {})
     if isinstance(options, dict):
-        folder = str(options.get("folder", DEFAULT_MOBILE_REVIEW_FOLDER)).strip()
-        if folder:
-            return folder
-    return DEFAULT_MOBILE_REVIEW_FOLDER
+        configured = str(options.get("folder_name", options.get("folder", DEFAULT_MOBILE_FOLDER_NAME))).strip()
+        if configured and configured != "99_Mobile_Review":
+            return configured
+    return DEFAULT_MOBILE_FOLDER_NAME
 
 
 def write_mobile_review_copies(
@@ -49,59 +40,49 @@ def write_mobile_review_copies(
     if not mobile_review_enabled(settings):
         return []
 
-    mobile_root = output_root / mobile_review_folder_name(settings)
-    run_mobile_root = mobile_root / pipeline_result.run_id
-    run_mobile_root.mkdir(parents=True, exist_ok=True)
-
+    folder_name = mobile_folder_name(settings)
     files: list[Path] = []
-    ordered_notes = sorted(pipeline_result.created_notes, key=mobile_sort_key)
-    index_path = run_mobile_root / "00_index.txt"
-    index_path.write_text(render_index(title, pipeline_result.run_id, ordered_notes), encoding="utf-8")
-    files.append(index_path)
+    for note in pipeline_result.created_notes:
+        target_dir = note.parent / folder_name
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / f"{note.stem}.txt"
+        mobile_text = render_mobile_text(note, title, pipeline_result.run_id, output_root)
+        target_path.write_text(mobile_text, encoding="utf-8")
+        files.append(target_path)
 
-    latest_candidate: Path | None = None
-    for note in ordered_notes:
-        target = run_mobile_root / f"{mobile_filename(note)}.txt"
-        target.write_text(note.read_text(encoding="utf-8", errors="ignore"), encoding="utf-8")
-        files.append(target)
-        if latest_candidate is None and note.parent.name in {"10_Daily_Intelligence", "30_Strategic_Intelligence"}:
-            latest_candidate = target
+        latest_path = target_dir / "latest.txt"
+        latest_path.write_text(mobile_text, encoding="utf-8")
+        files.append(latest_path)
 
-    latest_source = latest_candidate or (files[1] if len(files) > 1 else index_path)
-    latest_path = mobile_root / "latest_review.txt"
-    latest_path.write_text(latest_source.read_text(encoding="utf-8", errors="ignore"), encoding="utf-8")
-    files.append(latest_path)
-
-    latest_index_path = mobile_root / "latest_index.txt"
-    latest_index_path.write_text(index_path.read_text(encoding="utf-8", errors="ignore"), encoding="utf-8")
-    files.append(latest_index_path)
     return files
 
 
-def mobile_sort_key(path: Path) -> tuple[int, str]:
-    key = NOTE_ORDER.get(path.parent.name, "99_other")
-    return int(key.split("_", 1)[0]), path.name
-
-
-def mobile_filename(path: Path) -> str:
-    return NOTE_ORDER.get(path.parent.name, f"99_{path.parent.name.lower()}")
-
-
-def render_index(title: str, run_id: str, notes: list[Path]) -> str:
-    lines = [
-        f"AI Intelligence Unit Mobile Review",
+def render_mobile_text(note_path: Path, title: str, run_id: str, output_root: Path) -> str:
+    raw_text = note_path.read_text(encoding="utf-8", errors="ignore")
+    body = markdown_to_mobile_text(strip_frontmatter(raw_text))
+    relative_note = note_path.relative_to(output_root) if output_root in note_path.parents else note_path
+    header = [
+        "AI Intelligence Unit",
         f"Title: {title}",
         f"Run ID: {run_id}",
+        f"Original Obsidian note: {relative_note}",
         "",
-        "Files",
     ]
-    for note in sorted(notes, key=mobile_sort_key):
-        lines.append(f"- {mobile_filename(note)}.txt : {note.name}")
-    lines.extend(
-        [
-            "",
-            "Open the .txt files from Google Drive on mobile.",
-            "The .md files remain the Obsidian source files.",
-        ]
-    )
-    return "\n".join(lines) + "\n"
+    return "\n".join(header) + body.strip() + "\n"
+
+
+def strip_frontmatter(text: str) -> str:
+    if text.startswith("---\n"):
+        end = text.find("\n---\n", 4)
+        if end >= 0:
+            return text[end + len("\n---\n") :]
+    return text
+
+
+def markdown_to_mobile_text(text: str) -> str:
+    text = re.sub(r"\[\[([^\]|]+)\|([^\]]+)\]\]", r"\2", text)
+    text = re.sub(r"\[\[([^\]]+)\]\]", r"\1", text)
+    text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1\n  URL: \2", text)
+    text = re.sub(r"^#{1,6}\s*", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip() + "\n"

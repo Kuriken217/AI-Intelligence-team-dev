@@ -45,7 +45,6 @@ VAULT_FOLDERS = [
     "60_Decisions",
     "70_Actions_and_Results",
     "90_Sources",
-    "99_Mobile_Review",
     "Templates",
 ]
 

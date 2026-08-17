@@ -8,13 +8,13 @@ try:
     from .mobile_review import write_mobile_review_copies
     from .pipeline import PipelineResult, run_pipeline
     from .prior_knowledge import load_user_settings
-    from .themes import write_theme_request
+    from .themes import collect_theme_feed_sources, write_theme_request
     from .url_run import UrlRunResult, run_pipeline_from_urls
 except ImportError:
     from mobile_review import write_mobile_review_copies
     from pipeline import PipelineResult, run_pipeline
     from prior_knowledge import load_user_settings
-    from themes import write_theme_request
+    from themes import collect_theme_feed_sources, write_theme_request
     from url_run import UrlRunResult, run_pipeline_from_urls
 
 
@@ -149,3 +149,36 @@ def run_theme_urls_to_obsidian(
         timeout_seconds=timeout_seconds,
     )
     return ThemeObsidianRunResult(request_path=request_path, url_run_result=result)
+
+
+def run_theme_feeds_to_obsidian(
+    theme_id: str,
+    settings_path: Path,
+    registry_path: Path,
+    work_dir: Path,
+    title: str | None = None,
+    related_project: str | None = None,
+    limit: int = 5,
+    enrich: bool = False,
+    timeout_seconds: int = 15,
+) -> ThemeObsidianRunResult:
+    theme_work_dir = work_dir / theme_id
+    feed_sources_path = theme_work_dir / f"{theme_id}.feed_sources.json"
+    collect_theme_feed_sources(
+        registry_path=registry_path,
+        theme_id=theme_id,
+        output_path=feed_sources_path,
+        limit=limit,
+        timeout_seconds=timeout_seconds,
+    )
+    return run_theme_urls_to_obsidian(
+        theme_id=theme_id,
+        url_sources_path=feed_sources_path,
+        settings_path=settings_path,
+        registry_path=registry_path,
+        work_dir=work_dir,
+        title=title,
+        related_project=related_project,
+        enrich=enrich,
+        timeout_seconds=timeout_seconds,
+    )

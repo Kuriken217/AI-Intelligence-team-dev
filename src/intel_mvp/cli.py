@@ -6,20 +6,32 @@ from pathlib import Path
 
 try:
     from .evaluation import write_evaluation_report
-    from .obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian, run_theme_urls_to_obsidian, run_urls_to_obsidian
+    from .obsidian_direct import (
+        check_obsidian_write,
+        run_pipeline_to_obsidian,
+        run_theme_feeds_to_obsidian,
+        run_theme_urls_to_obsidian,
+        run_urls_to_obsidian,
+    )
     from .pipeline import run_pipeline
     from .review import append_decision, append_result, append_review
     from .source_ingestion import write_source_digest_from_urls
-    from .themes import load_theme_registry, list_theme_rows, write_theme_request, write_theme_url_template
+    from .themes import collect_theme_feed_sources, load_theme_registry, list_theme_rows, write_theme_request, write_theme_url_template
     from .url_run import run_pipeline_from_urls
     from .web_enrichment import enrich_url_sources_file
 except ImportError:
     from evaluation import write_evaluation_report
-    from obsidian_direct import check_obsidian_write, run_pipeline_to_obsidian, run_theme_urls_to_obsidian, run_urls_to_obsidian
+    from obsidian_direct import (
+        check_obsidian_write,
+        run_pipeline_to_obsidian,
+        run_theme_feeds_to_obsidian,
+        run_theme_urls_to_obsidian,
+        run_urls_to_obsidian,
+    )
     from pipeline import run_pipeline
     from review import append_decision, append_result, append_review
     from source_ingestion import write_source_digest_from_urls
-    from themes import load_theme_registry, list_theme_rows, write_theme_request, write_theme_url_template
+    from themes import collect_theme_feed_sources, load_theme_registry, list_theme_rows, write_theme_request, write_theme_url_template
     from url_run import run_pipeline_from_urls
     from web_enrichment import enrich_url_sources_file
 
@@ -114,6 +126,27 @@ def build_parser() -> argparse.ArgumentParser:
     run_theme_parser.add_argument("--related-project", default=None, help="Optional related_project override.")
     run_theme_parser.add_argument("--enrich", action="store_true", help="Fetch URL pages before creating the source digest.")
     run_theme_parser.add_argument("--timeout", type=int, default=15, help="Fetch timeout in seconds when --enrich is used.")
+
+    collect_theme_feeds_parser = subparsers.add_parser("collect-theme-feeds", help="Collect URL sources from a theme's configured feeds.")
+    collect_theme_feeds_parser.add_argument("--theme", required=True, help="Theme id from the theme registry.")
+    collect_theme_feeds_parser.add_argument("--output", required=True, help="Path to write collected URL source JSON.")
+    collect_theme_feeds_parser.add_argument("--registry", default="config/daily_intelligence_themes.json", help="Path to theme registry JSON.")
+    collect_theme_feeds_parser.add_argument("--limit", type=int, default=5, help="Maximum number of feed items to collect.")
+    collect_theme_feeds_parser.add_argument("--timeout", type=int, default=15, help="Feed fetch timeout in seconds.")
+
+    run_theme_feeds_parser = subparsers.add_parser(
+        "run-theme-feeds-to-obsidian",
+        help="Collect a theme's configured feeds and run the Daily Intelligence flow into Obsidian.",
+    )
+    run_theme_feeds_parser.add_argument("--theme", required=True, help="Theme id from the theme registry.")
+    run_theme_feeds_parser.add_argument("--settings", default="config/user_settings.json", help="Path to local user settings JSON.")
+    run_theme_feeds_parser.add_argument("--registry", default="config/daily_intelligence_themes.json", help="Path to theme registry JSON.")
+    run_theme_feeds_parser.add_argument("--work-dir", default="work/theme_feed_runs", help="Directory for generated feed sources and theme request.")
+    run_theme_feeds_parser.add_argument("--title", default=None, help="Optional title override.")
+    run_theme_feeds_parser.add_argument("--related-project", default=None, help="Optional related_project override.")
+    run_theme_feeds_parser.add_argument("--limit", type=int, default=5, help="Maximum number of feed items to collect.")
+    run_theme_feeds_parser.add_argument("--enrich", action="store_true", help="Fetch collected URL pages before creating the source digest.")
+    run_theme_feeds_parser.add_argument("--timeout", type=int, default=15, help="Fetch timeout in seconds.")
 
     return parser
 
@@ -284,6 +317,47 @@ def main() -> int:
             work_dir=Path(args.work_dir),
             title=args.title,
             related_project=args.related_project,
+            enrich=args.enrich,
+            timeout_seconds=args.timeout,
+        )
+        url_run = result.url_run_result
+        print(f"Wrote theme request: {result.request_path}")
+        print(f"Wrote source digest: {url_run.source_digest_path}")
+        if url_run.enriched_sources_path:
+            print(f"Wrote enriched URL sources: {url_run.enriched_sources_path}")
+        print(f"Created intelligence run: {url_run.pipeline_result.run_id}")
+        print("Run files:")
+        for run_file in url_run.pipeline_result.run_files:
+            print(f"- {run_file}")
+        print("Obsidian notes:")
+        for note in url_run.pipeline_result.created_notes:
+            print(f"- {note}")
+        if url_run.pipeline_result.mobile_files:
+            print("Mobile review files:")
+            for mobile_file in url_run.pipeline_result.mobile_files:
+                print(f"- {mobile_file}")
+        return 0
+
+    if args.command == "collect-theme-feeds":
+        output_path = collect_theme_feed_sources(
+            registry_path=Path(args.registry),
+            theme_id=args.theme,
+            output_path=Path(args.output),
+            limit=args.limit,
+            timeout_seconds=args.timeout,
+        )
+        print(f"Wrote collected theme feed sources: {output_path}")
+        return 0
+
+    if args.command == "run-theme-feeds-to-obsidian":
+        result = run_theme_feeds_to_obsidian(
+            theme_id=args.theme,
+            settings_path=Path(args.settings),
+            registry_path=Path(args.registry),
+            work_dir=Path(args.work_dir),
+            title=args.title,
+            related_project=args.related_project,
+            limit=args.limit,
             enrich=args.enrich,
             timeout_seconds=args.timeout,
         )

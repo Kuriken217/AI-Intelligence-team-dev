@@ -38,3 +38,10 @@ To generate the themed request and run it into Obsidian in one command:
 ```bat
 python src\intel_mvp\cli.py run-theme-to-obsidian --theme climate_public_agencies --urls examples\environment_public_agency_urls.json --settings config\user_settings.json --work-dir work\theme_runs
 ```
+
+To reduce manual URL collection, a theme can define `source_feeds`.
+
+```bat
+python src\intel_mvp\cli.py collect-theme-feeds --theme climate_public_agencies --output work\theme_feed_runs\climate_public_agencies\feed_sources.json --limit 3
+python src\intel_mvp\cli.py run-theme-feeds-to-obsidian --theme climate_public_agencies --settings config\user_settings.json --work-dir work\theme_feed_runs --limit 3
+```

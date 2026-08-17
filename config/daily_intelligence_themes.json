@@ -22,7 +22,23 @@
         "watch_next": ["NOAA/NCEI monthly climate report", "NASA GISTEMP update", "Copernicus climate bulletin", "WMO ENSO outlook"],
         "red_team_checks": ["予測を観測済み事実として扱っていないか確認する。", "各ソースが最新リリースか確認する。"]
       },
-      "source_guidance": ["Prefer official agency releases and datasets.", "Separate observed indicators from forecasts."]
+      "source_guidance": ["Prefer official agency releases and datasets.", "Separate observed indicators from forecasts."],
+      "source_feeds": [
+        {
+          "url": "https://science.nasa.gov/feed/earth-observatory/natural-events",
+          "publisher": "NASA Earth Observatory",
+          "type": "public_agency_feed",
+          "primary_source": true,
+          "reliability": "high"
+        },
+        {
+          "url": "https://www.nhc.noaa.gov/gtwo.xml",
+          "publisher": "NOAA National Hurricane Center",
+          "type": "public_agency_feed",
+          "primary_source": true,
+          "reliability": "high"
+        }
+      ]
     },
     "ai_infrastructure": {
       "display_name": "AI Infrastructure",
@@ -43,7 +59,8 @@
         "watch_next": ["hyperscaler capex", "GPU supply", "data center power constraints", "liquid cooling adoption"],
         "red_team_checks": ["企業発表と実需を混同していないか確認する。", "一次情報や顧客導入証拠があるか確認する。"]
       },
-      "source_guidance": ["Prefer company filings, earnings calls, official product releases, and reputable technical analysis."]
+      "source_guidance": ["Prefer company filings, earnings calls, official product releases, and reputable technical analysis."],
+      "source_feeds": []
     },
     "financial_markets": {
       "display_name": "Financial Markets",
@@ -61,7 +78,8 @@
         "watch_next": ["central bank communication", "inflation data", "employment data", "yield curve", "USD trend"],
         "red_team_checks": ["短期値動きと構造変化を混同していないか確認する。", "単一市場の動きを全体トレンドと誤認していないか確認する。"]
       },
-      "source_guidance": ["Prefer central bank releases, official statistics, market data, and reputable financial reporting."]
+      "source_guidance": ["Prefer central bank releases, official statistics, market data, and reputable financial reporting."],
+      "source_feeds": []
     },
     "geopolitics": {
       "display_name": "Geopolitics",
@@ -79,7 +97,8 @@
         "watch_next": ["official government statements", "sanctions updates", "election calendar", "energy supply indicators"],
         "red_team_checks": ["未確認情報やプロパガンダを事実として扱っていないか確認する。", "単一陣営の見方に偏っていないか確認する。"]
       },
-      "source_guidance": ["Prefer official statements, multilateral institutions, and multiple reputable news sources."]
+      "source_guidance": ["Prefer official statements, multilateral institutions, and multiple reputable news sources."],
+      "source_feeds": []
     },
     "company_watch": {
       "display_name": "Company Watch",
@@ -97,7 +116,8 @@
         "watch_next": ["earnings call", "official filings", "product announcements", "regulatory updates", "competitor moves"],
         "red_team_checks": ["会社発表をそのまま結論にしていないか確認する。", "競合・顧客・規制側の反証材料を確認する。"]
       },
-      "source_guidance": ["Prefer company filings, investor relations, regulator publications, and customer or competitor evidence."]
+      "source_guidance": ["Prefer company filings, investor relations, regulator publications, and customer or competitor evidence."],
+      "source_feeds": []
     }
   }
 }

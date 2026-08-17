@@ -5,6 +5,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+try:
+    from .feed_ingestion import collect_sources_from_feeds, load_feed_configs, write_feed_sources
+except ImportError:
+    from feed_ingestion import collect_sources_from_feeds, load_feed_configs, write_feed_sources
+
 
 DEFAULT_THEME_REGISTRY = Path("config/daily_intelligence_themes.json")
 
@@ -63,6 +68,7 @@ def build_url_source_template(registry: ThemeRegistry, theme_id: str) -> dict[st
     return {
         "theme_id": theme_id,
         "source_guidance": list(theme.get("source_guidance", [])),
+        "source_feeds": list(theme.get("source_feeds", [])),
         "sources": [
             {
                 "title": "",
@@ -98,3 +104,22 @@ def write_theme_url_template(registry_path: Path, theme_id: str, output_path: Pa
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(template, ensure_ascii=False, indent=2), encoding="utf-8")
     return output_path
+
+
+def collect_theme_feed_sources(
+    registry_path: Path,
+    theme_id: str,
+    output_path: Path,
+    limit: int = 5,
+    timeout_seconds: int = 15,
+) -> Path:
+    registry = load_theme_registry(registry_path)
+    if theme_id not in registry.themes:
+        available = ", ".join(sorted(registry.themes))
+        raise ValueError(f"Unknown theme '{theme_id}'. Available themes: {available}")
+
+    feed_configs = load_feed_configs(registry.themes[theme_id])
+    if not feed_configs:
+        raise ValueError(f"Theme '{theme_id}' does not define source_feeds.")
+    sources = collect_sources_from_feeds(feed_configs, limit=limit, timeout_seconds=timeout_seconds)
+    return write_feed_sources(sources, output_path, theme_id=theme_id)

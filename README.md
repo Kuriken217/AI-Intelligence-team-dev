@@ -73,6 +73,13 @@ Run a filled theme URL source file directly into Obsidian:
 C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-theme-to-obsidian --theme climate_public_agencies --urls examples\environment_public_agency_urls.json --settings config\user_settings.json --work-dir work\theme_runs
 ```
 
+Collect a theme's configured feeds and run them directly into Obsidian:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py collect-theme-feeds --theme climate_public_agencies --output work\theme_feed_runs\climate_public_agencies\feed_sources.json --limit 3
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-theme-feeds-to-obsidian --theme climate_public_agencies --settings config\user_settings.json --work-dir work\theme_feed_runs --limit 3
+```
+
 ## Run Tests
 
 ```bat

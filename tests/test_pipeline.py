@@ -9,6 +9,8 @@ from src.intel_mvp.contracts import validate_named_contract, validate_required_f
 from src.intel_mvp.delta import build_prior_knowledge_delta
 from src.intel_mvp.evaluate_cases import run_evaluation_cases
 from src.intel_mvp.evaluation import evaluate_run
+from src.intel_mvp import feed_ingestion as feed_ingestion_module
+from src.intel_mvp.feed_ingestion import FeedConfig, clean_summary, collect_sources_from_feeds, parse_feed, write_feed_sources
 from src.intel_mvp.git_check import format_preflight, GitPreflightResult
 from src.intel_mvp.mobile_review import write_mobile_review_copies
 from src.intel_mvp.news_brief import build_news_brief, render_news_brief_markdown
@@ -16,6 +18,7 @@ from src.intel_mvp.obsidian_direct import (
     check_obsidian_write,
     resolve_obsidian_paths,
     run_pipeline_to_obsidian,
+    run_theme_feeds_to_obsidian,
     run_theme_urls_to_obsidian,
     run_urls_to_obsidian,
 )
@@ -230,6 +233,7 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(request["requested_output"], "Daily Intelligence / News Brief")
         self.assertIn("news_brief", request)
         self.assertEqual(url_template["theme_id"], "climate_public_agencies")
+        self.assertIn("source_feeds", url_template)
         self.assertEqual(len(url_template["sources"]), 1)
 
     def test_write_theme_request(self) -> None:
@@ -248,6 +252,97 @@ class PipelineTest(unittest.TestCase):
             self.assertEqual(payload["title"], "Custom AI Infra News")
             self.assertEqual(payload["related_project"], "AI Watch")
             self.assertIn("ai", payload["tags"])
+
+    def test_parse_rss_feed_sources(self) -> None:
+        feed = """<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Example Feed</title>
+    <item>
+      <title>Climate update</title>
+      <link>https://example.gov/climate</link>
+      <pubDate>Tue, 18 Aug 2026 00:00:00 GMT</pubDate>
+      <description><![CDATA[<p>Climate summary.</p>]]></description>
+    </item>
+  </channel>
+</rss>
+"""
+        sources = parse_feed(
+            feed,
+            FeedConfig(
+                url="https://example.gov/feed.xml",
+                publisher="Example Agency",
+                type="public_agency_feed",
+                primary_source=True,
+                reliability="high",
+            ),
+        )
+
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(sources[0]["title"], "Climate update")
+        self.assertEqual(sources[0]["date"], "2026-08-18")
+        self.assertEqual(sources[0]["summary"], "Climate summary.")
+
+    def test_write_feed_sources_rejects_empty_collection(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with self.assertRaises(ValueError):
+                write_feed_sources([], Path(temp_dir) / "sources.json", theme_id="test")
+
+    def test_clean_summary_removes_feed_boilerplate(self) -> None:
+        self.assertEqual(
+            clean_summary("Smoke plume observed. The post Fire Update appeared first on NASA Science .", "NASA Earth Observatory"),
+            "Smoke plume observed.",
+        )
+        self.assertEqual(
+            clean_summary(
+                "000 ABNT20 KNHC 172317 TWOAT Tropical Weather Outlook NWS National Hurricane Center Miami FL "
+                "For the North Atlantic...Caribbean Sea and the Gulf of America: "
+                "Tropical cyclone formation is not expected during the next 7 days. $$ Forecaster Pasch",
+                "NOAA National Hurricane Center",
+            ),
+            "Tropical cyclone formation is not expected during the next 7 days.",
+        )
+
+    def test_collect_sources_from_feeds_skips_failed_feed(self) -> None:
+        original_fetch = feed_ingestion_module.fetch_feed_text
+
+        def fake_fetch(url: str, timeout_seconds: int = 15) -> str:
+            if "bad" in url:
+                raise OSError("feed unavailable")
+            title = "Valid item"
+            link = "https://example.gov/valid"
+            if "second" in url:
+                title = "Second feed item"
+                link = "https://example.gov/second"
+            return f"""<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <item>
+      <title>{title}</title>
+      <link>{link}</link>
+      <pubDate>Tue, 18 Aug 2026 00:00:00 GMT</pubDate>
+      <description>Valid summary.</description>
+    </item>
+  </channel>
+</rss>
+"""
+
+        try:
+            feed_ingestion_module.fetch_feed_text = fake_fetch
+            sources = collect_sources_from_feeds(
+                [
+                    FeedConfig("https://example.gov/bad.xml", "Bad", "feed", True, "high"),
+                    FeedConfig("https://example.gov/good.xml", "Good", "feed", True, "high"),
+                    FeedConfig("https://example.gov/second.xml", "Second", "feed", True, "high"),
+                ],
+                limit=3,
+            )
+        finally:
+            feed_ingestion_module.fetch_feed_text = original_fetch
+
+        self.assertEqual(len(sources), 2)
+        self.assertEqual(sources[0]["title"], "Valid item")
+        self.assertEqual(sources[1]["title"], "Second feed item")
 
     def test_validate_required_fields_reports_missing_values(self) -> None:
         result = validate_required_fields({"title": "Only title"}, {"required": ["title", "objective"]})
@@ -833,6 +928,86 @@ class PipelineTest(unittest.TestCase):
             self.assertTrue(result.request_path.exists())
             self.assertTrue(result.url_run_result.source_digest_path.exists())
             self.assertTrue(any(note.parent.name == "10_Daily_Intelligence" for note in result.url_run_result.pipeline_result.created_notes))
+            self.assertTrue((output_root / "10_Daily_Intelligence" / "For Mobile" / "latest.txt").exists())
+
+    def test_run_theme_feeds_to_obsidian_with_mocked_collector(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            settings_path = root / "settings.json"
+            vault_path = root / "vault"
+            registry_path = root / "themes.json"
+            work_dir = root / "work"
+            vault_path.mkdir()
+            settings_path.write_text(
+                json.dumps(
+                    {
+                        "obsidian_vault_path": str(vault_path),
+                        "obsidian_output_root": "AI_Intelligence_Unit",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            registry_path.write_text(
+                json.dumps(
+                    {
+                        "themes": {
+                            "mock_theme": {
+                                "title": "Mock Feed News",
+                                "objective": "Create feed news.",
+                                "decision_context": "Decide whether to monitor it.",
+                                "scope": ["mock"],
+                                "related_project": "Daily Intelligence",
+                                "priority": "high",
+                                "tags": ["mock"],
+                                "news_brief": {"headline": "Mock headline"},
+                                "source_feeds": [
+                                    {
+                                        "url": "https://example.gov/feed.xml",
+                                        "publisher": "Example Agency",
+                                        "type": "public_agency_feed",
+                                        "primary_source": True,
+                                        "reliability": "high",
+                                    }
+                                ],
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            import src.intel_mvp.themes as themes_module
+
+            original = themes_module.collect_sources_from_feeds
+
+            def fake_collect(_feed_configs, limit=5, timeout_seconds=15):
+                return [
+                    {
+                        "title": "Mock source",
+                        "url": "https://example.gov/mock",
+                        "type": "public_agency_feed",
+                        "date": "2026-08-18",
+                        "publisher": "Example Agency",
+                        "primary_source": True,
+                        "reliability": "high",
+                        "summary": "Mock feed summary.",
+                    }
+                ]
+
+            themes_module.collect_sources_from_feeds = fake_collect
+            try:
+                result = run_theme_feeds_to_obsidian(
+                    theme_id="mock_theme",
+                    settings_path=settings_path,
+                    registry_path=registry_path,
+                    work_dir=work_dir,
+                )
+            finally:
+                themes_module.collect_sources_from_feeds = original
+
+            output_root = vault_path / "AI_Intelligence_Unit"
+            self.assertTrue((work_dir / "mock_theme" / "mock_theme.feed_sources.json").exists())
+            self.assertTrue(result.request_path.exists())
             self.assertTrue((output_root / "10_Daily_Intelligence" / "For Mobile" / "latest.txt").exists())
 
 

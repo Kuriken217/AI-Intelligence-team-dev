@@ -4,24 +4,22 @@
 
 - Local Git repository: initialized
 - Branch: `main`
-- Working tree: expected to be clean before remote setup
-- Local commits:
-  - `bef8662 Initial-ai-intelligence-MVP-scaffold`
-  - `ff5ffac Update-phase-7-local-git-status`
-  - `008afe9 Use-local-synced-Obsidian-vault`
+- Remote: `https://github.com/Kuriken217/AI-Intelligence-team-dev.git`
+- First checkpoint: pushed to GitHub
+- Public-safe initial commit: `acc7270 Initial-public-MVP-scaffold`
 
 ## Recommended Repository Settings
 
 Recommended repository name:
 
 ```text
-ai-intelligence-unit-mvp
+AI-Intelligence-team-dev
 ```
 
-Recommended visibility:
+Current visibility:
 
 ```text
-private
+public
 ```
 
 Reason:
@@ -86,3 +84,15 @@ Before pushing to GitHub, confirm:
 - public/private
 - whether pushing `main` is acceptable
 - whether to create Issues from the backlog
+
+## Current GitHub Integration Limitation
+
+Codex can read repository metadata and files through the GitHub app, but write operations currently return:
+
+```text
+403 Resource not accessible by integration
+```
+
+This affected both file creation and issue creation through the app integration.
+
+For now, use GitHub Web or GitHub Desktop for write operations such as pushing and creating Issues.

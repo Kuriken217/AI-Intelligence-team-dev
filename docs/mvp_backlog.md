@@ -86,7 +86,7 @@ Done when: at least three different information requests complete and reveal cle
 - [x] Draft GitHub setup guide
 - [x] Draft GitHub Issues from backlog
 - [ ] Create GitHub repository
-- [ ] Push first checkpoint
+- [x] Push first checkpoint
 - [ ] Convert backlog into GitHub Issues if useful
 
 Done when: implementation history and issue tracking are in place.

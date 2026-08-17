@@ -2,6 +2,14 @@
 
 These issue drafts are derived from the MVP backlog. They can be created after a GitHub repository is available.
 
+Repository:
+
+```text
+https://github.com/Kuriken217/AI-Intelligence-team-dev
+```
+
+Note: Codex attempted to create Issues through the GitHub app integration, but the integration returned `403 Resource not accessible by integration`. Create these Issues manually in GitHub Web unless repository integration permissions are expanded.
+
 ## Issue 1: Connect Repository And Push First Checkpoint
 
 Labels: `phase-7`, `github`, `setup`
@@ -119,4 +127,3 @@ Decide whether Obsidian-only review is sufficient for the MVP, or whether a smal
 ### Done When
 
 The project has a clear UI direction for the next development phase.
-

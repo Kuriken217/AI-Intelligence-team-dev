@@ -41,3 +41,14 @@ The source digest should flag gaps when:
 
 The MVP currently evaluates manually supplied Markdown source digests. Live browsing, API search, and private-source access come later and require user approval.
 
+## URL Ingestion
+
+The MVP can convert a structured URL source JSON file into a source digest Markdown file.
+
+Example:
+
+```bat
+python -m src.intel_mvp.cli ingest-urls --input examples\url_sources.json --output work\generated_sources.md
+```
+
+The command does not fetch web pages yet. It validates URL-shaped inputs and preserves source metadata for later collection and review.

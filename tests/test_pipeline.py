@@ -13,6 +13,7 @@ from src.intel_mvp.git_check import format_preflight, GitPreflightResult
 from src.intel_mvp.pipeline import parse_source_digest, run_pipeline, slugify
 from src.intel_mvp.prior_knowledge import build_search_terms, filter_search_terms, find_related_notes
 from src.intel_mvp.review import append_decision, append_result, append_review
+from src.intel_mvp.source_ingestion import is_http_url, write_source_digest_from_urls
 from src.intel_mvp.source_quality import is_primary_source, source_quality_gaps
 from src.intel_mvp.vault import missing_frontmatter_fields
 
@@ -304,6 +305,40 @@ class PipelineTest(unittest.TestCase):
         self.assertIn("is_git_repo=true", text)
         self.assertIn("branch=main", text)
         self.assertIn("has_remote=false", text)
+
+    def test_write_source_digest_from_urls(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_path = root / "urls.json"
+            output_path = root / "sources.md"
+            input_path.write_text(
+                json.dumps(
+                    {
+                        "sources": [
+                            {
+                                "title": "Example",
+                                "url": "https://example.com/source",
+                                "type": "web_page",
+                                "date": "2026-08-17",
+                                "publisher": "Example Publisher",
+                                "primary_source": False,
+                                "reliability": "medium",
+                                "summary": "Example summary.",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            write_source_digest_from_urls(input_path, output_path)
+
+            text = output_path.read_text(encoding="utf-8")
+            self.assertIn("# Source Digest", text)
+            self.assertIn("- url: https://example.com/source", text)
+            self.assertIn("- primary_source: false", text)
+            self.assertTrue(is_http_url("https://example.com/source"))
+            self.assertFalse(is_http_url("not-a-url"))
 
 
 if __name__ == "__main__":

@@ -7,10 +7,12 @@ try:
     from .evaluation import write_evaluation_report
     from .pipeline import run_pipeline
     from .review import append_decision, append_result, append_review
+    from .source_ingestion import write_source_digest_from_urls
 except ImportError:
     from evaluation import write_evaluation_report
     from pipeline import run_pipeline
     from review import append_decision, append_result, append_review
+    from source_ingestion import write_source_digest_from_urls
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -41,6 +43,10 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate_parser = subparsers.add_parser("evaluate", help="Evaluate an intelligence run bundle.")
     evaluate_parser.add_argument("--run", required=True, help="Path to the run bundle directory.")
     evaluate_parser.add_argument("--output", required=True, help="Path to write the evaluation JSON report.")
+
+    ingest_parser = subparsers.add_parser("ingest-urls", help="Convert URL source JSON into a source digest Markdown file.")
+    ingest_parser.add_argument("--input", required=True, help="Path to URL source JSON file.")
+    ingest_parser.add_argument("--output", required=True, help="Path to write source digest Markdown.")
 
     return parser
 
@@ -82,6 +88,11 @@ def main() -> int:
     if args.command == "evaluate":
         output_path = write_evaluation_report(Path(args.run), Path(args.output))
         print(f"Wrote evaluation report: {output_path}")
+        return 0
+
+    if args.command == "ingest-urls":
+        output_path = write_source_digest_from_urls(Path(args.input), Path(args.output))
+        print(f"Wrote source digest: {output_path}")
         return 0
 
     parser.print_help()

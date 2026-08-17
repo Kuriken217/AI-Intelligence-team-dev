@@ -8,6 +8,7 @@ obsidian_vault/
 evaluation_vault/
 runs/
 reports/
+work/
 
 .env
 .venv/

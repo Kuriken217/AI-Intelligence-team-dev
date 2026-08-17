@@ -85,7 +85,7 @@ Done when: at least three different information requests complete and reveal cle
 - [x] Commit first local checkpoint
 - [x] Draft GitHub setup guide
 - [x] Draft GitHub Issues from backlog
-- [ ] Create GitHub repository
+- [x] Create GitHub repository
 - [x] Push first checkpoint
 - [ ] Convert backlog into GitHub Issues if useful
 
@@ -93,7 +93,20 @@ Done when: implementation history and issue tracking are in place.
 
 Requires user approval or input when: creating or connecting a GitHub repository.
 
-## Phase 8: Optional UI
+## Phase 8: Real Source Ingestion
+
+- [x] Define URL input format
+- [x] Convert URL source JSON into source digest Markdown
+- [ ] Fetch page metadata and text when permitted
+- [ ] Extract source title, publisher, date, summary, and reliability
+- [ ] Preserve citation links
+- [ ] Add tests with fixture HTML or Markdown
+
+Done when: the MVP can create traceable source digests from user-provided URLs.
+
+Requires user approval or input when: browsing the web or accessing private sources.
+
+## Phase 9: Optional UI
 
 - [ ] Decide whether Obsidian-only review is enough for MVP
 - [ ] If needed, build a small local review UI

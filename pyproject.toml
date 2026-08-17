@@ -1,0 +1,9 @@
+[project]
+name = "ai-intelligence-mvp"
+version = "0.1.0"
+description = "First scaffold for an Obsidian-centered AI Intelligence Unit MVP."
+requires-python = ">=3.11"
+
+[tool.unittest]
+testpaths = ["tests"]
+

@@ -1,0 +1,11 @@
+{
+  "title": "AI分析AgentにRed Teamを組み込む優先度",
+  "objective": "AIインテリジェンス部隊MVPにRed Team検証を初期から組み込むべきか判断する",
+  "decision_context": "MVPの開発順序として、情報収集より先に検証・反証フローを厚くするか決めたい",
+  "scope": ["分析品質", "バイアス検出", "反証可能性", "信頼度評価", "開発優先順位"],
+  "related_project": "AI Intelligence Unit MVP",
+  "priority": "medium",
+  "requested_output": "Strategic Intelligence",
+  "tags": ["red-team", "agent-design", "quality-control"]
+}
+

@@ -1,0 +1,11 @@
+{
+  "title": "ObsidianをSource of TruthにしたAIワークフロー",
+  "objective": "Obsidianを知識基盤にしたAI情報処理ワークフローをMVPで優先実装すべきか判断する",
+  "decision_context": "AIインテリジェンス部隊の次フェーズとして、Obsidian既存ノート参照と差分分析を優先するか決めたい",
+  "scope": ["知識管理", "既存ノート検索", "差分分析", "ユーザー確認", "運用リスク"],
+  "related_project": "AI Intelligence Unit MVP",
+  "priority": "high",
+  "requested_output": "Project Intelligence",
+  "tags": ["obsidian", "knowledge-base", "ai-workflow"]
+}
+

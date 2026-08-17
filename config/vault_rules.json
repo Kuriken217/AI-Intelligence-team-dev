@@ -1,0 +1,63 @@
+{
+  "vault_role": "source_of_truth",
+  "folders": {
+    "00_Inbox": "Unprocessed user requests and imported material.",
+    "10_Daily_Intelligence": "Daily intelligence briefs.",
+    "20_Project_Intelligence": "Project-specific intelligence notes.",
+    "30_Strategic_Intelligence": "Decision-oriented intelligence reports.",
+    "40_Knowledge": "Reusable concepts, facts, and evergreen notes.",
+    "50_Hypotheses": "Testable hypotheses and confidence history.",
+    "60_Decisions": "User decisions and decision rationale.",
+    "70_Actions_and_Results": "Actions taken, outcomes, and feedback.",
+    "90_Sources": "Source digests and original-source references.",
+    "Templates": "Reusable Markdown templates."
+  },
+  "statuses": [
+    "draft",
+    "collected",
+    "analyzed",
+    "red_team_reviewed",
+    "user_review",
+    "approved",
+    "rejected",
+    "watchlist",
+    "decided",
+    "waiting",
+    "completed",
+    "archived"
+  ],
+  "frontmatter_required": [
+    "type",
+    "status",
+    "created",
+    "updated",
+    "source",
+    "confidence",
+    "likelihood",
+    "related_project",
+    "tags",
+    "run_id"
+  ],
+  "note_types": {
+    "source_digest": "Collection output with source traceability.",
+    "strategic_intelligence": "User-facing intelligence report.",
+    "fact": "Validated factual claim.",
+    "concept": "Reusable knowledge concept.",
+    "insight": "Reusable decision-relevant observation.",
+    "hypothesis": "Testable belief with confidence and disconfirming evidence.",
+    "recommendation": "Recommended action or decision option.",
+    "decision": "User decision and rationale.",
+    "result": "Outcome and feedback after action."
+  },
+  "link_chain": [
+    "source_digest",
+    "fact",
+    "analysis",
+    "insight",
+    "hypothesis",
+    "recommendation",
+    "decision",
+    "result"
+  ]
+}
+

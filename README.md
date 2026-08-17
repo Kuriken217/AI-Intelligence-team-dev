@@ -1,0 +1,66 @@
+# AI Intelligence Unit MVP
+
+This is the first development scaffold for the AI Intelligence Unit MVP.
+
+The goal of this MVP is to prove the core cycle:
+
+```text
+Information Request
+ -> Collection
+ -> Analysis
+ -> Editorial Integration
+ -> Red Team
+ -> Strategy
+ -> Obsidian Save
+ -> User Review
+ -> Decision
+ -> Result Accumulation
+```
+
+## What This Version Provides
+
+- Agent responsibility definitions in `config/agents.json`
+- Agent I/O contracts in `config/io_schemas.json`
+- Obsidian vault rules in `config/vault_rules.json`
+- User-local settings template in `config/user_settings.example.json`
+- A sample information request in `examples/information_request.json`
+- A sample source digest in `examples/sources.md`
+- A local pipeline that writes structured Markdown notes into an Obsidian-style vault
+- Basic tests for the note-generation cycle
+
+## Run The MVP Pipeline
+
+Use the bundled Python runtime if Python is not available in your normal terminal.
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run --request examples\information_request.json --sources examples\sources.md --vault obsidian_vault
+```
+
+## Run Tests
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe -m unittest discover -s tests
+```
+
+## GitHub Preflight
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe -m src.intel_mvp.git_check
+```
+
+## Local Obsidian Settings
+
+Copy `config/user_settings.example.json` to `config/user_settings.json` and set your local Obsidian vault path.
+`config/user_settings.json` is intentionally ignored by Git.
+
+## MVP Completion Target
+
+The MVP is complete when one real user information request can be processed end-to-end and produces:
+
+- A structured intelligence report
+- Source notes
+- Red Team review
+- Strategic recommendations
+- Obsidian-compatible knowledge notes
+- A user decision note
+- A result/feedback note ready for later updates

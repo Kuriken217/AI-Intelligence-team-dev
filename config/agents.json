@@ -1,0 +1,45 @@
+{
+  "commander": {
+    "name": "Commander Agent",
+    "responsibility": "Clarify the user's information request, decision context, priority, scope, and expected output.",
+    "input": ["user_information_request", "project_context", "obsidian_prior_knowledge"],
+    "output": ["mission_brief", "task_breakdown", "success_criteria"]
+  },
+  "collector": {
+    "name": "Information Collection Agent",
+    "responsibility": "Collect relevant information from trusted sources and preserve source traceability.",
+    "input": ["mission_brief", "source_instructions"],
+    "output": ["source_digest", "fact_candidates", "source_notes"]
+  },
+  "analyst": {
+    "name": "Analysis Agent",
+    "responsibility": "Separate facts from interpretations and derive implications, hypotheses, and uncertainties.",
+    "input": ["source_digest", "mission_brief"],
+    "output": ["facts", "analysis", "insights", "hypotheses", "uncertainties"]
+  },
+  "editor": {
+    "name": "Intelligence Editor Agent",
+    "responsibility": "Integrate collected and analyzed material into a concise intelligence product for the user.",
+    "input": ["facts", "analysis", "insights", "hypotheses"],
+    "output": ["daily_intelligence", "project_intelligence", "strategic_intelligence"]
+  },
+  "red_team": {
+    "name": "Red Team Agent",
+    "responsibility": "Challenge sources, assumptions, reasoning, confidence, likelihood, and recommendations.",
+    "input": ["integrated_intelligence", "hypotheses", "recommendations"],
+    "output": ["counterpoints", "missing_information", "risk_flags", "confidence_adjustments"]
+  },
+  "strategist": {
+    "name": "Strategy Agent",
+    "responsibility": "Translate intelligence into decision options, recommended actions, risks, and next questions.",
+    "input": ["integrated_intelligence", "red_team_review", "user_context"],
+    "output": ["recommendations", "decision_options", "next_actions", "watch_items"]
+  },
+  "knowledge_keeper": {
+    "name": "Knowledge Structuring and Save Agent",
+    "responsibility": "Convert intelligence outputs into Obsidian-compatible notes with metadata, tags, and links.",
+    "input": ["all_agent_outputs", "vault_rules"],
+    "output": ["obsidian_notes", "links", "review_queue"]
+  }
+}
+

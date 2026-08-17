@@ -1,0 +1,26 @@
+{
+  "criteria": {
+    "completion": {
+      "description": "The run contains every required stage file.",
+      "weight": 25
+    },
+    "traceability": {
+      "description": "The source digest contains sources and fact candidates.",
+      "weight": 20
+    },
+    "red_team_quality": {
+      "description": "The Red Team review contains counterpoints and must-verify items.",
+      "weight": 20
+    },
+    "actionability": {
+      "description": "The strategy packet contains recommendations, options, and next actions.",
+      "weight": 20
+    },
+    "reviewability": {
+      "description": "The run creates a knowledge keeper packet and reviewable Obsidian notes.",
+      "weight": 15
+    }
+  },
+  "passing_score": 80
+}
+

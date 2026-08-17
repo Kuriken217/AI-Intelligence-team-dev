@@ -1,0 +1,11 @@
+{
+  "title": "AIデータセンター向け液冷市場の変化",
+  "objective": "AIインフラ領域で、液冷関連技術・企業・投資テーマを追うべきか判断する",
+  "decision_context": "今後の調査テーマ、投資仮説、事業機会探索の優先順位を決めたい",
+  "scope": ["市場動向", "技術トレンド", "主要企業", "リスク", "次に調べるべき論点"],
+  "related_project": "AI Infrastructure Intelligence",
+  "priority": "high",
+  "requested_output": "Strategic Intelligence",
+  "tags": ["ai-infrastructure", "liquid-cooling", "market-intelligence"]
+}
+

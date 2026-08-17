@@ -1,0 +1,12 @@
+{
+  "obsidian_vault_path": "C:\\path\\to\\your\\obsidian\\vault",
+  "prior_knowledge": {
+    "enabled": true,
+    "max_notes": 10,
+    "max_excerpt_chars": 500,
+    "min_score": 2,
+    "ignored_terms": ["ai", "market"],
+    "search_folders": [],
+    "exclude_folders": [".obsidian", ".trash", "Templates"]
+  }
+}

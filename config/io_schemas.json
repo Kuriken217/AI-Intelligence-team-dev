@@ -1,0 +1,93 @@
+{
+  "information_request": {
+    "description": "User request that starts an intelligence cycle.",
+    "required": ["title", "objective", "decision_context", "scope", "related_project", "priority", "requested_output", "tags"],
+    "fields": {
+      "title": "Short title for the intelligence run.",
+      "objective": "What the user wants to understand or decide.",
+      "decision_context": "The decision that this intelligence should support.",
+      "scope": "Topics or boundaries to investigate.",
+      "related_project": "Project or knowledge domain connected to the request.",
+      "priority": "Priority level such as low, medium, high, urgent.",
+      "requested_output": "Daily Intelligence, Project Intelligence, Strategic Intelligence, or Knowledge.",
+      "tags": "Obsidian tags for search and reuse."
+    }
+  },
+  "mission_brief": {
+    "description": "Commander output that clarifies the mission before collection starts.",
+    "required": ["run_id", "title", "objective", "decision_context", "scope", "success_criteria", "agent_tasks"],
+    "fields": {
+      "run_id": "Unique execution identifier.",
+      "title": "Mission title.",
+      "objective": "Clarified objective.",
+      "decision_context": "Decision to support.",
+      "scope": "Final investigation scope.",
+      "success_criteria": "Observable conditions that make the output useful.",
+      "agent_tasks": "Task list assigned to downstream agents."
+    }
+  },
+  "source_digest": {
+    "description": "Collector output that preserves traceable source summaries.",
+    "required": ["sources", "fact_candidates", "collection_gaps"],
+    "fields": {
+      "sources": "List of title, url, type, date, publisher, primary_source, reliability, and summary.",
+      "fact_candidates": "Claims that may become facts after validation.",
+      "collection_gaps": "Important missing source areas."
+    }
+  },
+  "analysis_packet": {
+    "description": "Analyst output that separates facts, interpretations, insights, and hypotheses.",
+    "required": ["facts", "interpretations", "insights", "hypotheses", "uncertainties"],
+    "fields": {
+      "facts": "Evidence-backed statements with source references.",
+      "interpretations": "Meaning inferred from facts.",
+      "insights": "Reusable or decision-relevant observations.",
+      "hypotheses": "Testable explanations or future-facing claims.",
+      "uncertainties": "Unknowns that materially affect the conclusion."
+    }
+  },
+  "integrated_intelligence": {
+    "description": "Editor output that turns analysis into a user-facing intelligence product.",
+    "required": ["summary", "key_findings", "implications", "confidence", "open_questions"],
+    "fields": {
+      "summary": "Concise answer to the request.",
+      "key_findings": "Most important findings in priority order.",
+      "implications": "Why the findings matter for the user.",
+      "confidence": "Overall confidence level and rationale.",
+      "open_questions": "Questions that remain unresolved."
+    }
+  },
+  "red_team_review": {
+    "description": "Critical review of sources, assumptions, reasoning, and recommendations.",
+    "required": ["counterpoints", "bias_risks", "missing_information", "confidence_adjustments", "must_verify"],
+    "fields": {
+      "counterpoints": "Alternative interpretations and objections.",
+      "bias_risks": "Possible distortions in source selection or analysis.",
+      "missing_information": "Data needed before stronger conclusions.",
+      "confidence_adjustments": "How the review changes confidence.",
+      "must_verify": "Items that need verification before action."
+    }
+  },
+  "strategy_packet": {
+    "description": "Strategy output that connects intelligence to decision options and action.",
+    "required": ["recommendation", "options", "next_actions", "watch_items", "decision_prompt"],
+    "fields": {
+      "recommendation": "Recommended course of action.",
+      "options": "Decision alternatives with tradeoffs.",
+      "next_actions": "Concrete near-term actions.",
+      "watch_items": "Signals to monitor.",
+      "decision_prompt": "Question the user must answer."
+    }
+  },
+  "obsidian_note": {
+    "description": "Knowledge Keeper output unit saved as a Markdown note.",
+    "required": ["folder", "filename", "frontmatter", "body", "links"],
+    "fields": {
+      "folder": "Vault folder path.",
+      "filename": "Markdown filename.",
+      "frontmatter": "YAML-compatible metadata.",
+      "body": "Markdown body.",
+      "links": "Obsidian links to related notes."
+    }
+  }
+}

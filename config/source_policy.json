@@ -1,0 +1,25 @@
+{
+  "preferred_source_order": [
+    "primary_source",
+    "regulatory_filing",
+    "company_disclosure",
+    "technical_standard",
+    "research_paper",
+    "reputable_news",
+    "market_commentary",
+    "social_media"
+  ],
+  "reliability_levels": ["high", "medium", "low", "unknown"],
+  "minimum_mvp_expectations": {
+    "primary_sources": 1,
+    "high_or_medium_reliability_sources": 2,
+    "source_count": 3
+  },
+  "gap_rules": [
+    "Flag when no primary source is included.",
+    "Flag when fewer than three sources are included.",
+    "Flag when fewer than two high or medium reliability sources are included.",
+    "Flag when the source set lacks customer, technical, financial, or operational evidence for decision-heavy topics."
+  ]
+}
+

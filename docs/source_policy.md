@@ -72,3 +72,17 @@ The command extracts:
 - estimated reliability
 
 This is intentionally separate from `ingest-urls` so manually curated source metadata remains possible.
+
+## Run From URLs
+
+The MVP can run the full intelligence pipeline directly from a URL source JSON file.
+
+```bat
+python -m src.intel_mvp.cli run-from-urls --request examples\information_request.json --urls examples\url_sources.json --vault obsidian_vault
+```
+
+Use `--enrich` when the environment is allowed to fetch web pages:
+
+```bat
+python -m src.intel_mvp.cli run-from-urls --request examples\information_request.json --urls examples\url_sources.json --vault obsidian_vault --enrich
+```

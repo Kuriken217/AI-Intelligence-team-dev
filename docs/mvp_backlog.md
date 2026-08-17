@@ -102,6 +102,7 @@ Requires user approval or input when: creating or connecting a GitHub repository
 - [x] Extract publisher, date, and reliability
 - [x] Preserve citation links
 - [x] Add tests with fixture HTML or Markdown
+- [x] Run the intelligence pipeline directly from URL source JSON
 
 Done when: the MVP can create traceable source digests from user-provided URLs.
 

@@ -15,6 +15,7 @@ from src.intel_mvp.prior_knowledge import build_search_terms, filter_search_term
 from src.intel_mvp.review import append_decision, append_result, append_review
 from src.intel_mvp.source_ingestion import is_http_url, write_source_digest_from_urls
 from src.intel_mvp.source_quality import is_primary_source, source_quality_gaps
+from src.intel_mvp.url_run import run_pipeline_from_urls
 from src.intel_mvp.vault import missing_frontmatter_fields
 from src.intel_mvp.web_enrichment import enrich_url_sources_file, extract_page_metadata
 
@@ -410,6 +411,53 @@ class PipelineTest(unittest.TestCase):
 
             payload = json.loads(output_path.read_text(encoding="utf-8"))
             self.assertIn("fetch_error", payload["sources"][0])
+
+    def test_run_pipeline_from_urls(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            request_path = root / "request.json"
+            urls_path = root / "urls.json"
+            vault_path = root / "vault"
+            work_dir = root / "work"
+            request_path.write_text(
+                json.dumps(
+                    {
+                        "title": "URL Run Test",
+                        "objective": "Evaluate URL sources",
+                        "decision_context": "Decide whether URL flow works",
+                        "scope": ["sources"],
+                        "related_project": "Test Project",
+                        "priority": "high",
+                        "requested_output": "Strategic Intelligence",
+                        "tags": ["test"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            urls_path.write_text(
+                json.dumps(
+                    {
+                        "sources": [
+                            {
+                                "title": "Example",
+                                "url": "https://example.com/source",
+                                "type": "web_page",
+                                "date": "2026-08-17",
+                                "publisher": "Example Publisher",
+                                "primary_source": False,
+                                "reliability": "medium",
+                                "summary": "Example summary.",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            result = run_pipeline_from_urls(request_path, urls_path, vault_path, work_dir)
+
+            self.assertTrue(result.source_digest_path.exists())
+            self.assertEqual(len(result.pipeline_result.created_notes), 6)
 
 
 if __name__ == "__main__":

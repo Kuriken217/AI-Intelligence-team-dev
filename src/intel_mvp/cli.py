@@ -8,12 +8,14 @@ try:
     from .pipeline import run_pipeline
     from .review import append_decision, append_result, append_review
     from .source_ingestion import write_source_digest_from_urls
+    from .url_run import run_pipeline_from_urls
     from .web_enrichment import enrich_url_sources_file
 except ImportError:
     from evaluation import write_evaluation_report
     from pipeline import run_pipeline
     from review import append_decision, append_result, append_review
     from source_ingestion import write_source_digest_from_urls
+    from url_run import run_pipeline_from_urls
     from web_enrichment import enrich_url_sources_file
 
 
@@ -54,6 +56,14 @@ def build_parser() -> argparse.ArgumentParser:
     enrich_parser.add_argument("--input", required=True, help="Path to URL source JSON file.")
     enrich_parser.add_argument("--output", required=True, help="Path to write enriched URL source JSON.")
     enrich_parser.add_argument("--timeout", type=int, default=15, help="Fetch timeout in seconds.")
+
+    run_urls_parser = subparsers.add_parser("run-from-urls", help="Generate an intelligence run from URL source JSON.")
+    run_urls_parser.add_argument("--request", required=True, help="Path to the information request JSON file.")
+    run_urls_parser.add_argument("--urls", required=True, help="Path to URL source JSON file.")
+    run_urls_parser.add_argument("--vault", required=True, help="Path to the Obsidian vault output directory.")
+    run_urls_parser.add_argument("--work-dir", default="work/url_runs", help="Directory for generated source digests.")
+    run_urls_parser.add_argument("--enrich", action="store_true", help="Fetch URL pages before creating the source digest.")
+    run_urls_parser.add_argument("--timeout", type=int, default=15, help="Fetch timeout in seconds when --enrich is used.")
 
     return parser
 
@@ -105,6 +115,27 @@ def main() -> int:
     if args.command == "enrich-urls":
         output_path = enrich_url_sources_file(Path(args.input), Path(args.output), timeout_seconds=args.timeout)
         print(f"Wrote enriched URL sources: {output_path}")
+        return 0
+
+    if args.command == "run-from-urls":
+        result = run_pipeline_from_urls(
+            request_path=Path(args.request),
+            url_sources_path=Path(args.urls),
+            vault_path=Path(args.vault),
+            work_dir=Path(args.work_dir),
+            enrich=args.enrich,
+            timeout_seconds=args.timeout,
+        )
+        print(f"Wrote source digest: {result.source_digest_path}")
+        if result.enriched_sources_path:
+            print(f"Wrote enriched URL sources: {result.enriched_sources_path}")
+        print(f"Created intelligence run: {result.pipeline_result.run_id}")
+        print("Run files:")
+        for run_file in result.pipeline_result.run_files:
+            print(f"- {run_file}")
+        print("Obsidian notes:")
+        for note in result.pipeline_result.created_notes:
+            print(f"- {note}")
         return 0
 
     parser.print_help()

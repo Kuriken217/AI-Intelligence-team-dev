@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from src.intel_mvp.contracts import validate_named_contract, validate_required_fields
+from src.intel_mvp.daily_run import run_daily_profile
 from src.intel_mvp.delta import build_prior_knowledge_delta
 from src.intel_mvp.evaluate_cases import run_evaluation_cases
 from src.intel_mvp.evaluation import evaluate_run
@@ -1009,6 +1010,106 @@ class PipelineTest(unittest.TestCase):
             self.assertTrue((work_dir / "mock_theme" / "mock_theme.feed_sources.json").exists())
             self.assertTrue(result.request_path.exists())
             self.assertTrue((output_root / "10_Daily_Intelligence" / "For Mobile" / "latest.txt").exists())
+
+    def test_run_daily_profile_writes_evaluation_and_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            settings_path = root / "settings.json"
+            vault_path = root / "vault"
+            registry_path = root / "themes.json"
+            daily_config_path = root / "daily_runs.json"
+            work_dir = root / "work"
+            evaluation_dir = root / "reports"
+            vault_path.mkdir()
+            settings_path.write_text(
+                json.dumps(
+                    {
+                        "obsidian_vault_path": str(vault_path),
+                        "obsidian_output_root": "AI_Intelligence_Unit",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            registry_path.write_text(
+                json.dumps(
+                    {
+                        "themes": {
+                            "mock_theme": {
+                                "title": "Mock Daily News",
+                                "objective": "Create daily feed news.",
+                                "decision_context": "Decide whether to monitor it.",
+                                "scope": ["mock"],
+                                "related_project": "Daily Intelligence",
+                                "priority": "high",
+                                "tags": ["mock"],
+                                "news_brief": {"headline": "Mock headline"},
+                                "source_feeds": [
+                                    {
+                                        "url": "https://example.gov/feed.xml",
+                                        "publisher": "Example Agency",
+                                        "type": "public_agency_feed",
+                                        "primary_source": True,
+                                        "reliability": "high",
+                                    }
+                                ],
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            daily_config_path.write_text(
+                json.dumps(
+                    {
+                        "profiles": {
+                            "mock_daily": {
+                                "theme": "mock_theme",
+                                "settings": str(settings_path),
+                                "registry": str(registry_path),
+                                "work_dir": str(work_dir),
+                                "evaluation_dir": str(evaluation_dir),
+                                "limit": 2,
+                                "timeout_seconds": 1,
+                                "enrich": False,
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            import src.intel_mvp.themes as themes_module
+
+            original = themes_module.collect_sources_from_feeds
+
+            def fake_collect(_feed_configs, limit=5, timeout_seconds=15):
+                return [
+                    {
+                        "title": "Mock daily source",
+                        "url": "https://example.gov/daily",
+                        "type": "public_agency_feed",
+                        "date": "2026-08-18",
+                        "publisher": "Example Agency",
+                        "primary_source": True,
+                        "reliability": "high",
+                        "summary": "Mock daily feed summary.",
+                    }
+                ]
+
+            themes_module.collect_sources_from_feeds = fake_collect
+            try:
+                result = run_daily_profile("mock_daily", daily_config_path)
+            finally:
+                themes_module.collect_sources_from_feeds = original
+
+            self.assertEqual(result.profile, "mock_daily")
+            self.assertTrue(result.evaluation_path.exists())
+            self.assertTrue(result.summary_path.exists())
+            self.assertTrue(result.latest_summary_path.exists())
+            self.assertTrue(result.evaluation["passed"])
+            summary = json.loads(result.latest_summary_path.read_text(encoding="utf-8"))
+            self.assertEqual(summary["run_id"], result.run_id)
+            self.assertTrue(summary["mobile_files"])
 
 
 if __name__ == "__main__":

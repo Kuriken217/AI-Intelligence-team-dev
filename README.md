@@ -80,6 +80,22 @@ C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\p
 C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-theme-feeds-to-obsidian --theme climate_public_agencies --settings config\user_settings.json --work-dir work\theme_feed_runs --limit 3
 ```
 
+Run the configured morning Daily Intelligence profile end to end:
+
+```bat
+C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py daily-run --profile morning_climate --config config\daily_runs.json
+```
+
+To register a local Windows Scheduled Task for daily 06:00 execution:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\register_daily_morning_climate_task.ps1
+```
+
+The task runs `scripts\run_daily_morning_climate.ps1`, which writes the Obsidian notes, mobile `.txt` files, evaluation report, and latest daily summary.
+
+See `docs\daily_automation.md` for the automation flow and Web UI options.
+
 ## Run Tests
 
 ```bat

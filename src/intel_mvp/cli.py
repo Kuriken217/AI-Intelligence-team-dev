@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 try:
+    from .daily_run import run_daily_profile
     from .evaluation import write_evaluation_report
     from .obsidian_direct import (
         check_obsidian_write,
@@ -20,6 +21,7 @@ try:
     from .url_run import run_pipeline_from_urls
     from .web_enrichment import enrich_url_sources_file
 except ImportError:
+    from daily_run import run_daily_profile
     from evaluation import write_evaluation_report
     from obsidian_direct import (
         check_obsidian_write,
@@ -147,6 +149,11 @@ def build_parser() -> argparse.ArgumentParser:
     run_theme_feeds_parser.add_argument("--limit", type=int, default=5, help="Maximum number of feed items to collect.")
     run_theme_feeds_parser.add_argument("--enrich", action="store_true", help="Fetch collected URL pages before creating the source digest.")
     run_theme_feeds_parser.add_argument("--timeout", type=int, default=15, help="Fetch timeout in seconds.")
+
+    daily_run_parser = subparsers.add_parser("daily-run", help="Run a configured Daily Intelligence profile end to end.")
+    daily_run_parser.add_argument("--profile", default="morning_climate", help="Daily run profile name.")
+    daily_run_parser.add_argument("--config", default="config/daily_runs.json", help="Path to daily run profiles JSON.")
+    daily_run_parser.add_argument("--limit", type=int, default=None, help="Optional feed item limit override.")
 
     return parser
 
@@ -378,6 +385,24 @@ def main() -> int:
             for mobile_file in url_run.pipeline_result.mobile_files:
                 print(f"- {mobile_file}")
         return 0
+
+    if args.command == "daily-run":
+        result = run_daily_profile(
+            profile_name=args.profile,
+            config_path=Path(args.config),
+            limit_override=args.limit,
+        )
+        print(f"Created daily run: {result.run_id}")
+        print(f"profile={result.profile}")
+        print(f"theme={result.theme_id}")
+        print(f"run_path={result.run_path}")
+        print(f"source_digest={result.source_digest_path}")
+        print(f"evaluation={result.evaluation_path}")
+        print(f"summary={result.summary_path}")
+        print(f"latest_summary={result.latest_summary_path}")
+        print(f"score={result.evaluation.get('score')}")
+        print(f"passed={str(bool(result.evaluation.get('passed'))).lower()}")
+        return 0 if result.evaluation.get("passed") else 1
 
     parser.print_help()
     return 1

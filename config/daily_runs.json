@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "morning_climate": {
+      "description": "Daily JST 06:00 climate/public-agency intelligence brief.",
+      "theme": "climate_public_agencies",
+      "settings": "config/user_settings.json",
+      "registry": "config/daily_intelligence_themes.json",
+      "work_dir": "work/daily_runs",
+      "evaluation_dir": "work/reports/daily_runs",
+      "limit": 5,
+      "timeout_seconds": 20,
+      "enrich": false
+    }
+  }
+}

@@ -10,6 +10,7 @@ from typing import Any
 try:
     from .contracts import validate_information_request, validate_named_contract
     from .delta import build_prior_knowledge_delta
+    from .news_brief import build_news_brief, render_news_brief_markdown
     from .prior_knowledge import find_related_notes, load_user_settings, summarize_related_notes
     from .stages import (
         build_analysis_packet,
@@ -23,6 +24,7 @@ try:
 except ImportError:
     from contracts import validate_information_request, validate_named_contract
     from delta import build_prior_knowledge_delta
+    from news_brief import build_news_brief, render_news_brief_markdown
     from prior_knowledge import find_related_notes, load_user_settings, summarize_related_notes
     from stages import (
         build_analysis_packet,
@@ -218,66 +220,8 @@ def write_daily_intelligence_note(
     daily_stem = note_stem(now, slug, run_id, "daily_intelligence")
     report_stem = note_stem(now, slug, run_id, "intelligence_report")
     path = vault_path / "10_Daily_Intelligence" / f"{daily_stem}.md"
-    source_links = "\n".join(
-        f"- [{source.get('title', source.get('heading', 'Untitled'))}]({source.get('url', '')})"
-        for source in sources
-    )
-    key_developments = "\n".join(f"- {source.get('summary', 'No summary provided')}" for source in sources)
-    lead = sources[0].get("summary", "") if sources else "Official-source monitoring found a new intelligence item."
-    body = f"""---
-type: daily_intelligence
-status: user_review
-created: {now:%Y-%m-%d}
-updated: {now:%Y-%m-%d}
-source: multiple
-confidence: medium
-likelihood: monitored
-related_project: {request.get("related_project", "")}
-tags: {json.dumps(request.get("tags", []), ensure_ascii=False)}
-run_id: {run_id}
----
-
-# Daily Intelligence: {request["title"]}
-
-## Headline
-
-Official climate monitors point to continued high global temperature and ocean-heat signals.
-
-## Lead
-
-{lead}
-
-## Key Developments
-
-{key_developments}
-
-## Why It Matters
-
-- The source set combines observed indicators, seasonal outlooks, and reference datasets from public agencies.
-- Ocean temperature, ENSO, sea ice, and global temperature indicators can affect disaster risk, food and water systems, insurance, energy demand, and policy attention.
-- The item is suitable for continued monitoring because each claim links back to a dated official source.
-
-## What To Watch Next
-
-- Next NOAA/NCEI monthly global climate report
-- Next NASA GISTEMP monthly update
-- Follow-up Copernicus sea surface temperature and climate bulletins
-- WMO ENSO and seasonal climate outlook updates
-
-## Red Team Checks
-
-- Do not present forecasts as observations.
-- Check whether the latest monthly release has superseded this note.
-- Preserve baseline periods and methods when comparing agencies.
-
-## Sources
-
-{source_links}
-
-## Linked Notes
-
-- Strategic Intelligence: [[{report_stem}]]
-"""
+    brief = build_news_brief(request, sources, now)
+    body = render_news_brief_markdown(request, brief, run_id, now, report_stem)
     path.write_text(body, encoding="utf-8")
     return path
 

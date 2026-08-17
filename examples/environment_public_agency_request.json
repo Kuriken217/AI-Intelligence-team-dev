@@ -12,6 +12,30 @@
   "related_project": "AI Intelligence Unit MVP",
   "priority": "high",
   "requested_output": "Daily Intelligence / News Brief",
+  "news_brief": {
+    "headline": "公式機関の発表は、地球環境変動の監視で気温・海洋・ENSOを重点確認する局面を示している",
+    "why_it_matters": [
+      "NOAA、WMO、Copernicus、NASAのような公式ソースを横断することで、単発ニュースではなく監視すべきシグナルとして扱える。",
+      "気温、海面水温、ENSO、海氷は、災害リスク、食料・水、エネルギー需要、政策判断に波及しやすい。",
+      "各主張を日付付きソースに接続しておくことで、後続アップデート時に差分確認しやすい。"
+    ],
+    "potential_implications": [
+      "環境変動テーマをDaily Intelligenceの継続監視対象にする価値がある。",
+      "次回更新では、観測値と予測情報を分けて比較する必要がある。",
+      "地域別の影響情報を追加すると、意思決定への接続度が上がる。"
+    ],
+    "watch_next": [
+      "NOAA/NCEIの次回月次グローバル気候レポート",
+      "NASA GISTEMPの次回月次更新",
+      "Copernicusの海面水温・気候速報",
+      "WMOのENSOおよび季節気候見通し"
+    ],
+    "red_team_checks": [
+      "予測を観測済み事実として扱っていないか確認する。",
+      "各ソースが最新リリースか確認する。",
+      "全球指標だけで地域影響を断定していないか確認する。"
+    ]
+  },
   "tags": [
     "environment",
     "climate",

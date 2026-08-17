@@ -56,6 +56,9 @@ Fetch public URLs, build a source digest, and write the intelligence brief direc
 C:\Users\kurib\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe src\intel_mvp\cli.py run-urls-to-obsidian --request examples\environment_public_agency_request.json --urls examples\environment_public_agency_urls.json --settings config\user_settings.json --work-dir work\environment_public_agency --enrich
 ```
 
+Daily Intelligence news briefs use the standard sections documented in `docs\daily_intelligence_brief.md`.
+Add a `news_brief` object to a request JSON to tune headline, implications, watch items, and Red Team checks for a specific topic.
+
 ## Run Tests
 
 ```bat

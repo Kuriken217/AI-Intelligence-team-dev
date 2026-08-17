@@ -11,6 +11,7 @@ from src.intel_mvp.evaluate_cases import run_evaluation_cases
 from src.intel_mvp.evaluation import evaluate_run
 from src.intel_mvp.git_check import format_preflight, GitPreflightResult
 from src.intel_mvp.mobile_review import write_mobile_review_copies
+from src.intel_mvp.news_brief import build_news_brief, render_news_brief_markdown
 from src.intel_mvp.obsidian_direct import check_obsidian_write, resolve_obsidian_paths, run_pipeline_to_obsidian, run_urls_to_obsidian
 from src.intel_mvp.pipeline import PipelineResult, parse_source_digest, run_pipeline, should_write_daily_intelligence, slugify
 from src.intel_mvp.prior_knowledge import build_search_terms, filter_search_terms, find_related_notes
@@ -173,6 +174,45 @@ class PipelineTest(unittest.TestCase):
         self.assertTrue(should_write_daily_intelligence({"title": "Environment news"}))
         self.assertFalse(should_write_daily_intelligence({"requested_output": "Strategic Intelligence"}))
 
+    def test_news_brief_uses_request_customization(self) -> None:
+        from datetime import datetime
+
+        request = {
+            "title": "Climate News",
+            "objective": "Create a daily brief",
+            "decision_context": "Decide whether to monitor it",
+            "scope": ["climate", "ocean"],
+            "requested_output": "Daily Intelligence / News Brief",
+            "tags": ["test"],
+            "news_brief": {
+                "headline": "Custom headline",
+                "why_it_matters": ["Custom reason"],
+                "potential_implications": ["Custom implication"],
+                "watch_next": ["Custom watch item"],
+                "red_team_checks": ["Custom challenge"],
+            },
+        }
+        sources = [
+            {
+                "title": "Official update",
+                "url": "https://example.gov/update",
+                "publisher": "Example Agency",
+                "date": "2026-08-18",
+                "primary_source": "true",
+                "reliability": "high",
+                "summary": "Official source summary.",
+            }
+        ]
+
+        brief = build_news_brief(request, sources, datetime(2026, 8, 18))
+        markdown = render_news_brief_markdown(request, brief, "run-1", datetime(2026, 8, 18), "report")
+
+        self.assertEqual(brief.headline, "Custom headline")
+        self.assertIn("Custom implication", markdown)
+        self.assertIn("Custom watch item", markdown)
+        self.assertIn("Custom challenge", markdown)
+        self.assertIn("https://example.gov/update", markdown)
+
     def test_validate_required_fields_reports_missing_values(self) -> None:
         result = validate_required_fields({"title": "Only title"}, {"required": ["title", "objective"]})
 
@@ -286,6 +326,10 @@ class PipelineTest(unittest.TestCase):
 
             self.assertEqual(len(result.created_notes), 7)
             self.assertTrue(any(note.parent.name == "10_Daily_Intelligence" for note in result.created_notes))
+            daily_note = next(note for note in result.created_notes if note.parent.name == "10_Daily_Intelligence")
+            daily_text = daily_note.read_text(encoding="utf-8")
+            self.assertIn("## Potential Implications", daily_text)
+            self.assertIn("## Confidence / Uncertainty", daily_text)
 
     def test_check_obsidian_write_uses_configured_output_root(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
